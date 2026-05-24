@@ -40,8 +40,20 @@
     let navigating   = false;
     let curPage      = '';
 
-    // Dados do PHP injetados no shell
-    const favIds   = new Set((window.APP_DATA?.favoritasIds || []).map(Number));
+    // Helpers para favoritos Deezer (localStorage)
+    function isDeezerTrack(id) { return String(id).indexOf('dz_') === 0; }
+    function getDeezerFavs() {
+        try { return JSON.parse(localStorage.getItem('duckDzFavs') || '[]'); }
+        catch(e) { return []; }
+    }
+    function saveDeezerFavs(arr) {
+        localStorage.setItem('duckDzFavs', JSON.stringify(arr));
+    }
+
+    // Dados do PHP injetados no shell + favoritos Deezer do localStorage
+    var phpFavs = (window.APP_DATA?.favoritasIds || []).map(String);
+    var dzFavs  = getDeezerFavs();
+    const favIds   = new Set(phpFavs.concat(dzFavs));
     const userData = window.APP_DATA?.usuario || {};
     let savedVol   = parseFloat(localStorage.getItem('duckVol')) || 0.8;
 
@@ -235,7 +247,7 @@
         });
 
         // Favorito
-        setFavIcon(playerFavBtn, favIds.has(parseInt(song.id)));
+        setFavIcon(playerFavBtn, favIds.has(String(song.id)));
 
         // Media Session
         setMediaSession(song);
@@ -347,6 +359,29 @@
     // 8. FAVORITOS (AJAX)
     // =============================================
     function toggleFav(id, btn) {
+        var strId = String(id);
+
+        // DEEZER: favoritos salvos no localStorage
+        if (isDeezerTrack(strId)) {
+            var dz = getDeezerFavs();
+            var idx = dz.indexOf(strId);
+            var isFav;
+            if (idx > -1) {
+                dz.splice(idx, 1);
+                isFav = false;
+            } else {
+                dz.push(strId);
+                isFav = true;
+            }
+            saveDeezerFavs(dz);
+
+            if (isFav) { favIds.add(strId); } else { favIds.delete(strId); }
+            syncFavIcons(strId, isFav);
+            toast(isFav ? 'Adicionado aos favoritos' : 'Removido dos favoritos');
+            return;
+        }
+
+        // LOCAL: favoritos salvos no banco via API
         fetch('/api/favoritar.php', {
             method: 'POST',
             credentials: 'same-origin',
@@ -360,15 +395,14 @@
             var data = JSON.parse(clean.substring(i >= 0 ? i : 0));
 
             if (data.status === 'success') {
-                var nid = parseInt(id);
                 if (data.favoritado) {
-                    favIds.add(nid);
+                    favIds.add(strId);
                     toast('Adicionado aos favoritos');
                 } else {
-                    favIds.delete(nid);
+                    favIds.delete(strId);
                     toast('Removido dos favoritos');
                 }
-                syncFavIcons(id, data.favoritado);
+                syncFavIcons(strId, data.favoritado);
 
                 // Se na aba favoritas e desfavoritou, esconde o card
                 if (!data.favoritado) {
@@ -414,7 +448,7 @@
     function updateAllFavIcons() {
         var btns = content.querySelectorAll('.btn-fav[data-id]');
         for (var i = 0; i < btns.length; i++) {
-            var id = parseInt(btns[i].dataset.id);
+            var id = String(btns[i].dataset.id);
             setFavIcon(btns[i], favIds.has(id));
         }
     }
@@ -696,7 +730,7 @@
             if (playerFavBtn) playerFavBtn.setAttribute('data-id', song.id || '');
             audio.src = song.audio || '';
             player.style.display = 'flex';
-            setFavIcon(playerFavBtn, favIds.has(parseInt(song.id)));
+            setFavIcon(playerFavBtn, favIds.has(String(song.id)));
             setMediaSession(song);
         } catch (e) { }
     }

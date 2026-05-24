@@ -1,6 +1,7 @@
 /**
  * DUCK MUSIC - ARQUIVO MESTRE UNIFICADO
  * Gerencia Player, Favoritos, Tabs e Modal de Playlists
+ * Suporta tracks locais (ID numerico) e Deezer (ID dz_XXXXX)
  */
 
 // --- 1. ELEMENTOS DO DOM ---
@@ -23,17 +24,34 @@ const toast = document.getElementById('toast');
 let currentSongIndex = -1;
 let songsArray = [];
 let lastVolume = parseFloat(localStorage.getItem('duckMusicVolume')) || 0.8;
-// Pega os IDs favoritos do PHP (se existirem) ou inicia vazio
-const phpFavoritas = window.APP_DATA ? window.APP_DATA.favoritasIds : [];
 
-// --- 3. INICIALIZAÇÃO ---
+// Helpers para favoritos Deezer (localStorage)
+function isDeezerTrack(id) { return String(id).indexOf('dz_') === 0; }
+function getDeezerFavs() {
+    try { return JSON.parse(localStorage.getItem('duckDzFavs') || '[]'); }
+    catch(e) { return []; }
+}
+function saveDeezerFavs(arr) {
+    localStorage.setItem('duckDzFavs', JSON.stringify(arr));
+}
+
+// Unifica favoritos do PHP (locais) + Deezer (localStorage)
+const phpFavoritasRaw = window.APP_DATA ? window.APP_DATA.favoritasIds : [];
+const allFavoritas = phpFavoritasRaw.map(String).concat(getDeezerFavs());
+
+function isFavorited(id) {
+    return allFavoritas.indexOf(String(id)) !== -1;
+}
+
+// --- 3. INICIALIZACAO ---
 document.addEventListener('DOMContentLoaded', () => {
     populateSongsArray();
     initTabs();
     initPlayerEvents();
     initPlaylistLogic();
     loadStoredSong();
-    
+    updateAllFavoriteIcons();
+
     // Configura Volume Inicial
     if (audio) {
         audio.volume = lastVolume;
@@ -42,7 +60,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 /**
- * Mapeia todas as músicas presentes na página para a fila do player
+ * Mapeia todas as musicas presentes na pagina para a fila do player
  */
 function populateSongsArray() {
     const items = document.querySelectorAll('.card[data-id], .song-row[data-id], .music-card[data-id]');
@@ -67,19 +85,18 @@ function initTabs() {
             const target = this.getAttribute('data-tab');
             tabs.forEach(t => t.classList.remove('active'));
             contents.forEach(c => c.classList.remove('active'));
-            
+
             this.classList.add('active');
             const targetEl = document.getElementById(target);
             if (targetEl) targetEl.classList.add('active');
-            
-            // Recarrega a fila se mudar de aba
+
             populateSongsArray();
         };
     });
 }
 
 /**
- * Lógica do Modal de Playlist (AJAX)
+ * Logica do Modal de Playlist (AJAX)
  */
 function initPlaylistLogic() {
     const modal = document.getElementById('modalCriarPlaylist');
@@ -122,7 +139,7 @@ function initPlaylistLogic() {
 }
 
 /**
- * Gerencia a troca de músicas e estado do Player
+ * Gerencia a troca de musicas e estado do Player
  */
 function loadSong(index) {
     if (index < 0 || index >= songsArray.length) return;
@@ -133,19 +150,46 @@ function loadSong(index) {
     audio.src = song.audio;
     playTitle.textContent = song.titulo;
     playArtist.textContent = song.artista || 'Artista Desconhecido';
-    playImg.src = song.capa || '../assets/img/capa-padrao.jpg';
-    
+    playImg.src = song.capa || '/assets/img/capa-padrao.svg';
+    playImg.onerror = function() { this.src = '/assets/img/capa-padrao.svg'; };
+
     if (playerFavBtn) playerFavBtn.setAttribute('data-id', song.id);
-    
+
     // Mostra o player e toca
     player.style.display = 'flex';
-    audio.play().catch(() => console.log("Interação necessária para tocar"));
-    
-    updateAllFavoriteIcons(song.id, phpFavoritas.includes(parseInt(song.id)));
-    
-    // Muda ícone de play/pause no player
+    audio.play().catch(() => console.log("Interacao necessaria para tocar"));
+
+    // Atualiza icone de favorito do player
+    updateFavIcon(playerFavBtn, isFavorited(song.id));
+
+    // Muda icone de play/pause no player
     btnPlay.style.display = 'none';
     btnPause.style.display = 'inline-block';
+
+    // Salva estado para restaurar
+    try { localStorage.setItem('duckSong', JSON.stringify(song)); } catch(e) {}
+
+    // Media Session API
+    if ('mediaSession' in navigator) {
+        var artwork = [];
+        if (song.capa) {
+            artwork = [
+                { src: song.capa, sizes: '96x96', type: 'image/jpeg' },
+                { src: song.capa, sizes: '256x256', type: 'image/jpeg' },
+                { src: song.capa, sizes: '512x512', type: 'image/jpeg' }
+            ];
+        }
+        navigator.mediaSession.metadata = new MediaMetadata({
+            title: song.titulo,
+            artist: song.artista,
+            album: 'DuckMusic',
+            artwork: artwork
+        });
+        navigator.mediaSession.setActionHandler('play', () => audio.play());
+        navigator.mediaSession.setActionHandler('pause', () => audio.pause());
+        navigator.mediaSession.setActionHandler('previoustrack', () => document.getElementById('btn-prev').click());
+        navigator.mediaSession.setActionHandler('nexttrack', () => document.getElementById('btn-next').click());
+    }
 }
 
 function initPlayerEvents() {
@@ -153,18 +197,20 @@ function initPlayerEvents() {
 
     btnPlay.onclick = () => audio.play();
     btnPause.onclick = () => audio.pause();
-    
+
     document.getElementById('btn-next').onclick = () => loadSong((currentSongIndex + 1) % songsArray.length);
     document.getElementById('btn-prev').onclick = () => loadSong((currentSongIndex - 1 + songsArray.length) % songsArray.length);
 
     audio.onplay = () => {
         btnPlay.style.display = 'none';
         btnPause.style.display = 'inline-block';
+        if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'playing';
     };
 
     audio.onpause = () => {
         btnPlay.style.display = 'inline-block';
         btnPause.style.display = 'none';
+        if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'paused';
     };
 
     audio.ontimeupdate = () => {
@@ -178,6 +224,17 @@ function initPlayerEvents() {
 
     audio.onended = () => document.getElementById('btn-next').click();
 
+    // Click na barra de progresso para seek
+    const progressBar = document.getElementById('progress-bar');
+    if (progressBar) {
+        progressBar.onclick = function(e) {
+            if (!audio.duration || !isFinite(audio.duration)) return;
+            const rect = this.getBoundingClientRect();
+            const pct = (e.clientX - rect.left) / rect.width;
+            audio.currentTime = pct * audio.duration;
+        };
+    }
+
     if (volumeSlider) {
         volumeSlider.oninput = function() {
             audio.volume = this.value;
@@ -186,14 +243,77 @@ function initPlayerEvents() {
             updateVolumeIcon(this.value);
         };
     }
+
+    if (volumeIcon) {
+        volumeIcon.onclick = function() {
+            if (audio.volume > 0) {
+                localStorage.setItem('duckVolPrev', audio.volume);
+                audio.volume = 0;
+                if (volumeSlider) volumeSlider.value = 0;
+                updateVolumeIcon(0);
+            } else {
+                var prev = parseFloat(localStorage.getItem('duckVolPrev')) || 0.8;
+                audio.volume = prev;
+                if (volumeSlider) volumeSlider.value = prev;
+                updateVolumeIcon(prev);
+            }
+        };
+    }
+
+    // Atalhos de teclado
+    document.addEventListener('keydown', (e) => {
+        const tag = e.target.tagName;
+        if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+
+        switch(e.code) {
+            case 'Space':
+                e.preventDefault();
+                audio.paused ? audio.play() : audio.pause();
+                break;
+            case 'ArrowRight':
+                audio.currentTime = Math.min(audio.duration || 0, audio.currentTime + 5);
+                break;
+            case 'ArrowLeft':
+                audio.currentTime = Math.max(0, audio.currentTime - 5);
+                break;
+        }
+    });
 }
 
 /**
- * Lógica de Favoritos (AJAX)
+ * Logica de Favoritos - suporta tracks locais (API) e Deezer (localStorage)
  */
 async function toggleFavorite(musicaId, button) {
+    const strId = String(musicaId);
+
+    // DEEZER: favoritos salvos no localStorage
+    if (isDeezerTrack(strId)) {
+        var dzFavs = getDeezerFavs();
+        var idx = dzFavs.indexOf(strId);
+        var isFav;
+
+        if (idx > -1) {
+            dzFavs.splice(idx, 1);
+            isFav = false;
+        } else {
+            dzFavs.push(strId);
+            isFav = true;
+        }
+        saveDeezerFavs(dzFavs);
+
+        // Atualiza array local unificado
+        var aIdx = allFavoritas.indexOf(strId);
+        if (isFav && aIdx === -1) allFavoritas.push(strId);
+        if (!isFav && aIdx > -1) allFavoritas.splice(aIdx, 1);
+
+        syncFavIcons(strId, isFav);
+        showToast(isFav ? "Adicionado aos favoritos" : "Removido dos favoritos");
+        return;
+    }
+
+    // LOCAL: favoritos salvos no banco via API
     try {
-        const response = await fetch('../api/favoritar.php', {
+        const response = await fetch('/api/favoritar.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
             body: 'musica_id=' + encodeURIComponent(musicaId)
@@ -202,37 +322,38 @@ async function toggleFavorite(musicaId, button) {
 
         if (data.status === 'success') {
             const isFav = data.favoritado;
-            const numId = parseInt(musicaId);
 
-            // Atualiza array local de favoritos
-            if (isFav) {
-                if (!phpFavoritas.includes(numId)) phpFavoritas.push(numId);
-            } else {
-                const idx = phpFavoritas.indexOf(numId);
-                if (idx > -1) phpFavoritas.splice(idx, 1);
-            }
+            // Atualiza array local unificado
+            var aIdx = allFavoritas.indexOf(strId);
+            if (isFav && aIdx === -1) allFavoritas.push(strId);
+            if (!isFav && aIdx > -1) allFavoritas.splice(aIdx, 1);
 
-            updateAllFavoriteIcons(musicaId, isFav);
+            syncFavIcons(strId, isFav);
             showToast(isFav ? "Adicionado aos favoritos" : "Removido dos favoritos");
 
             // Se estiver na aba de favoritas e removeu, esconde o card
             if (!isFav && document.querySelector('.tab-btn.active[data-tab="favoritas"], .library-tab.active[data-tab="favoritas"]')) {
                 const card = button.closest('.card, .music-card');
-                if (card) card.style.display = 'none';
+                if (card) {
+                    card.style.transition = 'opacity 0.3s';
+                    card.style.opacity = '0';
+                    setTimeout(() => card.remove(), 300);
+                }
             }
         }
     } catch (err) {
         console.error("Erro ao favoritar:", err);
+        showToast("Erro ao favoritar");
     }
 }
 
 /**
- * Eventos Globais de Clique (Delegação)
+ * Eventos Globais de Clique (Delegacao)
  */
 document.addEventListener('click', (e) => {
     const target = e.target;
 
-    // Botão Favoritar
+    // Botao Favoritar
     const btnFav = target.closest('.btn-fav') || target.closest('#player-fav-btn');
     if (btnFav) {
         e.preventDefault();
@@ -241,7 +362,7 @@ document.addEventListener('click', (e) => {
         return;
     }
 
-    // Clique no Card (Tocar Música)
+    // Clique no Card (Tocar Musica)
     const card = target.closest('.card[data-id], .music-card[data-id], .song-row[data-id]');
     if (card) {
         populateSongsArray();
@@ -258,33 +379,71 @@ function formatTime(s) {
     return `${min}:${sec < 10 ? '0' : ''}${sec}`;
 }
 
-function updateAllFavoriteIcons(id, isFav) {
-    document.querySelectorAll(`[data-id="${id}"] .fa-heart, #player-fav-btn[data-id="${id}"] .fa-heart`).forEach(icon => {
-        icon.classList.toggle('fas', isFav);
-        icon.classList.toggle('far', !isFav);
-        icon.classList.toggle('favorito', isFav);
+function updateFavIcon(btn, isFav) {
+    if (!btn) return;
+    const icon = btn.querySelector('i');
+    if (!icon) return;
+    if (isFav) {
+        icon.classList.remove('far');
+        icon.classList.add('fas', 'favorito');
+    } else {
+        icon.classList.remove('fas', 'favorito');
+        icon.classList.add('far');
+    }
+}
+
+function syncFavIcons(id, isFav) {
+    const strId = String(id);
+    document.querySelectorAll('.btn-fav[data-id="' + strId + '"]').forEach(btn => {
+        updateFavIcon(btn, isFav);
     });
+    if (playerFavBtn && playerFavBtn.getAttribute('data-id') === strId) {
+        updateFavIcon(playerFavBtn, isFav);
+    }
+}
+
+function updateAllFavoriteIcons() {
+    document.querySelectorAll('.btn-fav[data-id]').forEach(btn => {
+        updateFavIcon(btn, isFavorited(btn.dataset.id));
+    });
+    // Player favorito
+    if (playerFavBtn && playerFavBtn.dataset.id) {
+        updateFavIcon(playerFavBtn, isFavorited(playerFavBtn.dataset.id));
+    }
 }
 
 function updateVolumeIcon(v) {
     if (!volumeIcon) return;
-    volumeIcon.className = v == 0 ? 'fas fa-volume-mute' : (v < 0.5 ? 'fas fa-volume-down' : 'fas fa-volume-up');
+    v = parseFloat(v);
+    volumeIcon.className = v === 0 ? 'fas fa-volume-xmark'
+                         : v < 0.3 ? 'fas fa-volume-off'
+                         : v < 0.7 ? 'fas fa-volume-low'
+                         :           'fas fa-volume-high';
 }
 
 function showToast(msg) {
     if (!toast) return;
     toast.textContent = msg;
     toast.classList.add('show');
-    setTimeout(() => toast.classList.remove('show'), 3000);
+    clearTimeout(toast._t);
+    toast._t = setTimeout(() => toast.classList.remove('show'), 3000);
 }
 
 function loadStoredSong() {
-    const stored = localStorage.getItem('playingSong');
-    if (stored) {
-        localStorage.removeItem('playingSong'); // Limpa para não tocar toda vez que der F5
-        const songData = JSON.parse(stored);
-        populateSongsArray();
-        const idx = songsArray.findIndex(s => s.id == songData.id);
-        if (idx !== -1) loadSong(idx);
-    }
+    try {
+        const raw = localStorage.getItem('duckSong');
+        if (!raw) return;
+        const song = JSON.parse(raw);
+        // Restaura UI sem tocar
+        if (playTitle) playTitle.textContent = song.titulo || 'Selecione uma musica';
+        if (playArtist) playArtist.textContent = song.artista || 'DuckMusic';
+        if (playImg) {
+            playImg.src = song.capa || '/assets/img/capa-padrao.svg';
+            playImg.onerror = function() { this.src = '/assets/img/capa-padrao.svg'; };
+        }
+        if (playerFavBtn) playerFavBtn.setAttribute('data-id', song.id || '');
+        if (audio) audio.src = song.audio || '';
+        if (player) player.style.display = 'flex';
+        updateFavIcon(playerFavBtn, isFavorited(song.id));
+    } catch(e) {}
 }
