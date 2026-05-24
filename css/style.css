@@ -1,0 +1,346 @@
+/* ==========================================================
+   0. RESET & BASE
+   ========================================================== */
+   *{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:'Arial',sans-serif;
+}
+html,body{min-height:100vh;}
+body{
+    display:flex;
+    flex-direction:column;
+    background:#121212;
+    color:#fff;
+    overflow-x:hidden;
+    padding-bottom:90px;               /* espaço para o player fixo */
+}
+header{display:flex;width:100%;}
+a{text-decoration:none;color:inherit;}
+
+/* ==========================================================
+   1. MENU SIDEBAR
+   ========================================================== */
+.menu_side{
+    position:fixed;top:0;left:0;
+    width:200px;height:100%;
+    background:#181818;padding:20px;
+    overflow-y:auto;border-right:1px solid #333;
+}
+.menu_side .logo{display:flex;gap:10px;margin-bottom:20px;}
+.menu_side .logo img{width:120px;}
+
+.menu_side nav ul{list-style:none;}
+.menu_side nav ul li{
+    padding:15px;color:#ccc;cursor:pointer;
+    border-radius:8px;transition:background .3s;
+}
+.menu_side nav ul li:hover{background:#333;}
+
+.menu_side .section{margin-top:20px;}
+.menu_side .section p{color:#888;font-size:14px;margin:10px 0;}
+
+/* Saudação */
+.welcome-message{margin:20px 0;text-align:center;line-height:1.4;color:#ccc;font-size:15px;}
+.welcome-message strong{color:#fff;font-size:16px;}
+
+/* ==========================================================
+   2. CONTEÚDO PRINCIPAL
+   ========================================================== */
+.song_side{
+    margin-left:200px;
+    padding:30px;
+    flex-grow:1;
+    overflow-y:auto;
+}
+
+/* Barra de busca genérica */
+.album-search,
+.artist-search{
+    display:flex;align-items:center;
+    background:#222;padding:10px 15px;border-radius:30px;
+    margin-bottom:30px;
+}
+#searchAlbumInput,
+#artistSearchInput{
+    flex-grow:1;border:none;background:transparent;
+    color:#fff;font-size:16px;outline:none;
+}
+.album-search .bi-search,
+.artist-search .bi-search{margin-left:-32px;color:#888;cursor:pointer;}
+
+/* ==========================================================
+   3. “EM ALTA” – CARROSSEL
+   ========================================================== */
+.carousel-container{position:relative;margin-bottom:30px;width:100%;}
+.carousel-wrapper{display:flex;align-items:center;overflow:hidden;position:relative;}
+#carousel{display:flex;gap:10px;padding:10px 0;overflow-x:auto;scroll-behavior:smooth;}
+#carousel::-webkit-scrollbar{display:none;}
+
+.carousel-item{width:120px;flex:0 0 auto;}
+.carousel-img-wrapper{width:100%;height:120px;border-radius:10px;overflow:hidden;position:relative;}
+.carousel-img-wrapper img{width:100%;height:100%;object-fit:cover;}
+
+.music-player-overlay{
+    position:absolute;inset:0;
+    background:rgba(0,0,0,.4);
+    display:flex;align-items:center;justify-content:center;
+    opacity:0;border-radius:10px;transition:opacity .4s;
+}
+.carousel-img-wrapper:hover .music-player-overlay{opacity:1;}
+.music-player-overlay i{font-size:50px;color:#fff;transition:transform .3s;}
+.music-player-overlay i:hover{transform:scale(1.2);}
+
+/* ==========================================================
+   4. LISTA DE MÚSICAS (visualização antiga – mantém p/ outras páginas)
+   ========================================================== */
+#musicList li{
+    display:flex;align-items:center;gap:15px;
+    background:#1f1f1f;margin-bottom:10px;padding:10px;
+    border-radius:10px;cursor:pointer;transition:background .3s;
+}
+#musicList li:hover{background:#333;}
+#musicList img{width:50px;border-radius:5px;}
+
+/* ==========================================================
+   5. GRID DE ÁLBUNS / ARTISTAS
+   ========================================================== */
+.album-section,.artist-section{padding:20px;}
+.album-section h3,.artist-section h3{margin-bottom:12px;color:#fff;}
+
+#albumsContainer,
+.artist-grid,
+.music-grid{                       /* grid reutilizável */
+    display:grid;
+    gap:16px;
+    grid-template-columns:repeat(auto-fill,minmax(140px,1fr));
+}
+
+/* ---- cartões genéricos ---- */
+.album-card,
+.artist-card,
+.music-card{
+    background:#181818;
+    border-radius:10px;
+    padding:10px;
+    text-align:center;
+    cursor:pointer;
+    transition:transform .2s,box-shadow .2s;
+    overflow:hidden;
+}
+.album-card:hover,
+.artist-card:hover,
+.music-card:hover{
+    transform:translateY(-4px);
+    box-shadow:0 6px 12px rgba(0,0,0,.4);
+}
+
+.album-card img,
+.artist-card img,
+.music-card img{
+    width:100%;height:100px;
+    object-fit:cover;border-radius:6px;
+}
+.album-card h5,
+.artist-card h5,
+.music-card h5{
+    margin:8px 0 4px;
+    font-size:.9rem;
+    color:#fff;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.album-card small,
+.artist-card small{
+    color:#bbb;font-size:.8rem;
+}
+
+/* botão play flutuante nos cartões de música */
+.music-card{
+    position:relative;
+}
+.music-card .play-btn{
+    position:absolute;right:10px;bottom:10px;
+    width:34px;height:34px;
+    border:none;border-radius:50%;
+    background:#1db954;
+    display:flex;align-items:center;justify-content:center;
+    color:#fff;font-size:1.1rem;
+    opacity:0;transition:opacity .2s;
+}
+.music-card:hover .play-btn{opacity:1;}
+.music-card .play-btn i{pointer-events:none;}
+
+/* ---- Álbum detalhado ---- */
+.album-detalhes{color:#fff;}
+.album-detalhes .voltar-btn{
+    background:#1db954;color:#fff;border:none;
+    padding:6px 12px;border-radius:4px;cursor:pointer;margin-bottom:12px;
+}
+.musicas-lista{list-style:none;margin-top:16px;padding:0;}
+.musicas-lista li{
+    display:flex;align-items:center;gap:12px;
+    padding:8px;cursor:pointer;
+}
+.musicas-lista li:hover{background:rgba(255,255,255,.05);}
+
+/* ==========================================================
+   6. PLAYER FIXO
+   ========================================================== */
+.music-player-fixed{
+    position:fixed;bottom:0;left:200px;right:0;
+    height:80px;background:#1a1a1a;border-top:1px solid #333;
+    display:flex;align-items:center;justify-content:space-between;
+    padding:0 20px;z-index:200;
+}
+.music-info{display:flex;align-items:center;gap:15px;}
+.music-info img{width:50px;height:50px;object-fit:cover;border-radius:5px;}
+.music-info .details{display:flex;flex-direction:column;}
+.music-info span{font-size:16px;font-weight:bold;}
+.music-info small{font-size:12px;color:#999;}
+.controls{display:flex;align-items:center;gap:20px;}
+.controls button{
+    background:none;border:none;color:#fff;font-size:24px;
+    cursor:pointer;transition:.3s;
+}
+.controls button:hover{transform:scale(1.3);}
+.progress-container{
+    flex:1;display:flex;align-items:center;gap:5px;margin:0 50px;
+}
+.progress-container input[type=range],
+.volume-container input[type=range]{
+    appearance:none;background:#555;height:8px;border-radius:5px;width:100%;
+}
+.volume-container{display:flex;align-items:center;gap:10px;}
+.volume-container input{width:80px;}
+/* Coração favorito */
+#heartIcon{font-size:22px;color:#fff;cursor:pointer;transition:transform .3s,color .3s;}
+#heartIcon.bi-heart-fill{color:#fff;}
+#heartIcon:hover{transform:scale(1.4);}
+/* ==========================================================
+   7. TOAST
+   ========================================================== */
+#toast-message{
+    position:fixed;top:20px;left:50%;transform:translateX(-50%);
+    background:#333;color:#fff;padding:10px 20px;border-radius:30px;
+    font-size:14px;display:none;z-index:9999;
+    animation:fadeInOut 3s;
+}
+@keyframes fadeInOut{
+    0%{opacity:0;}10%{opacity:1;}90%{opacity:1;}100%{opacity:0;}
+}
+/* ==========================================================
+   8. HERO / LANDING PAGE (opcional)
+   ========================================================== */
+.navegacao{
+    position:fixed;top:0;width:100%;z-index:1000;
+    padding:1.5rem 8%;display:flex;justify-content:space-between;align-items:center;
+    background:rgba(0,0,0,.3);backdrop-filter:blur(10px);
+}
+.logo{
+    font-size:2rem;font-weight:bold;
+    background:linear-gradient(45deg,#ff6b6b,#4ecdc4);
+    -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+    animation:gradient 5s ease infinite;
+}
+@keyframes gradient{
+    0%,100%{background-position:0% 50%;}
+    50%{background-position:100% 50%;}
+}
+.auth-buttons a{
+    margin-left:1.5rem;padding:.8rem 2rem;border-radius:25px;font-weight:bold;transition:.3s;
+}
+.login-btn{border:2px solid #4ecdc4;color:#4ecdc4;}
+.register-btn{background:linear-gradient(45deg,#ff6b6b,#4ecdc4);color:#fff;}
+
+/* Hero section */
+.hero{padding:150px 8% 0;text-align:center;margin-top:80px;}
+.hero h1{
+    font-size:4rem;margin-bottom:1.5rem;
+    background:linear-gradient(45deg,#ff6b6b,#4ecdc4);
+    -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+}
+.hero p{font-size:1.2rem;margin-bottom:2rem;}
+.cta-buttons{display:flex;justify-content:center;gap:1.5rem;}
+.cta-buttons a{padding:1rem 2rem;border-radius:25px;font-weight:bold;transition:.3s;}
+.cta-primary{background:linear-gradient(45deg,#ff6b6b,#4ecdc4);color:#fff;}
+.cta-secondary{border:2px solid #4ecdc4;color:#4ecdc4;}
+
+/* Features grid */
+.features{
+    padding:4rem 8%;display:grid;gap:2rem;
+    grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+}
+.ccrecurso{
+    background:rgba(255,255,255,.05);padding:2rem;border-radius:15px;text-align:center;transition:transform .3s;
+}
+.ccrecurso:hover{transform:translateY(-10px);}
+.xvideos{
+    font-size:2.5rem;margin-bottom:1rem;
+    background:linear-gradient(45deg,#ff6b6b,#4ecdc4);
+    -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+}
+
+/* Footer */
+.footer{padding:2rem 8%;text-align:center;background:rgba(0,0,0,.3);margin-top:4rem;}
+.social-links{display:flex;justify-content:center;gap:1.5rem;margin-bottom:1rem;}
+.social-links a{font-size:1.5rem;color:#fff;transition:color .3s;}
+.social-links a:hover{color:#4ecdc4;}
+
+/* ==========================================================
+   9. RESPONSIVO
+   ========================================================== */
+@media(max-width:768px){
+    .menu_side{width:100%;height:auto;position:relative;border:none;}
+    .song_side{margin-left:0;padding:20px;}
+    .music-player-fixed{left:0;width:100%;}
+    .hero h1{font-size:2.5rem;}
+    .cta-buttons{flex-direction:column;align-items:center;}
+    .features{grid-template-columns:1fr;}
+    .navegacao{flex-direction:column;padding:1rem;}
+    .auth-buttons a{margin:.5rem 0;}
+}
+
+/* ==========================================================
+   10. HOVERS ESPECÍFICOS
+   ========================================================== */
+.artist-grid .artist-card:hover img{
+    transform:scale(1.1);
+    box-shadow:0 4px 12px rgba(0,0,0,.2);
+}
+/* Ajustes rápidos inline */
+    .playlist-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin: 1rem 0;
+    }
+    .btn-create-playlist {
+      background: #1db954; color: #fff; border: none;
+      padding: .5rem 1rem; border-radius: 4px;
+      cursor: pointer; font-size: 1rem;
+      display: inline-flex; align-items: center; gap: .5rem;
+    }
+    .playlist-grid {
+      display: flex; flex-wrap: wrap; gap: 1rem;
+    }
+    .playlist-card {
+      position: relative; width: 180px; background: #1e1e1e;
+      border-radius: 10px; overflow: hidden; cursor: pointer;
+      transition: transform .2s ease;
+    }
+    .playlist-card:hover { transform: scale(1.03); }
+    .playlist-card img { width: 100%; height: 180px; object-fit: cover; }
+    .playlist-card h5 {
+      padding: .5rem; margin: 0; color: #fff; font-size: 1rem;
+    }
+    .playlist-card small {
+      display: block; padding: 0 .5rem .5rem;
+      color: #aaa; font-size: .8rem;
+    }
+    .card-actions {
+      position: absolute; top: 8px; right: 8px;
+      display: flex; gap: 6px;
+    }
+    .card-actions i {
+      background: rgba(0,0,0,0.6); padding: 6px;
+      border-radius: 50%; color: #fff; cursor: pointer;
+    }

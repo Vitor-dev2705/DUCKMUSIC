@@ -1,2 +1,2 @@
-# DUCKMUSIC
-Aplicativo de streaming de músicas.
+# TCC ETC DUCKMUSIC
+Novo
