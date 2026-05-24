@@ -99,7 +99,7 @@
         // Loading
         content.innerHTML = '<div class="loading-spinner"><i class="fas fa-spinner"></i></div>';
 
-        fetch(url, { credentials: 'same-origin' })
+        fetch(url, { credentials: 'same-origin', headers: { 'X-SPA': '1' } })
             .then(function (res) {
                 // Se redirecionou para login, manda o usuario
                 if (res.redirected && res.url.indexOf('login') !== -1) {
@@ -183,7 +183,7 @@
         }
 
         // --- Links dentro do conteudo que devem ser SPA ---
-        var internalLinks = content.querySelectorAll('a[href*="ver_playlist"], a[href*="configuracoes"], a[href*="dashboard"], a[href*="explorar"], a[href*="biblioteca"]');
+        var internalLinks = content.querySelectorAll('a[href*="ver_playlist"], a[href*="configuracoes"], a[href*="dashboard"], a[href*="explorar"], a[href*="biblioteca"], a[href*="iniciar_doacao"]');
         internalLinks.forEach(function (a) {
             if (a._spa) return;
             a._spa = true;
@@ -358,35 +358,37 @@
     // =============================================
     // 8. FAVORITOS (AJAX)
     // =============================================
+    /** Busca metadados do track pelo ID no DOM */
+    function getTrackMeta(id) {
+        var card = content.querySelector('[data-id="' + id + '"]') ||
+                   document.querySelector('[data-id="' + id + '"]');
+        if (!card) return {};
+        return {
+            titulo: card.dataset.titulo || '',
+            artista: card.dataset.artista || '',
+            capa: card.dataset.capa || '',
+            audio: card.dataset.audio || ''
+        };
+    }
+
     function toggleFav(id, btn) {
         var strId = String(id);
+        var meta = getTrackMeta(strId);
 
-        // DEEZER: favoritos salvos no localStorage
+        // Monta body com metadados para Deezer tracks
+        var bodyParts = ['musica_id=' + encodeURIComponent(strId)];
         if (isDeezerTrack(strId)) {
-            var dz = getDeezerFavs();
-            var idx = dz.indexOf(strId);
-            var isFav;
-            if (idx > -1) {
-                dz.splice(idx, 1);
-                isFav = false;
-            } else {
-                dz.push(strId);
-                isFav = true;
-            }
-            saveDeezerFavs(dz);
-
-            if (isFav) { favIds.add(strId); } else { favIds.delete(strId); }
-            syncFavIcons(strId, isFav);
-            toast(isFav ? 'Adicionado aos favoritos' : 'Removido dos favoritos');
-            return;
+            bodyParts.push('titulo=' + encodeURIComponent(meta.titulo));
+            bodyParts.push('artista=' + encodeURIComponent(meta.artista));
+            bodyParts.push('capa=' + encodeURIComponent(meta.capa));
+            bodyParts.push('audio=' + encodeURIComponent(meta.audio));
         }
 
-        // LOCAL: favoritos salvos no banco via API
         fetch('/api/favoritar.php', {
             method: 'POST',
             credentials: 'same-origin',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: 'musica_id=' + encodeURIComponent(id)
+            body: bodyParts.join('&')
         })
         .then(function (r) { return r.text(); })
         .then(function (raw) {
@@ -638,11 +640,116 @@
     }
 
     // =============================================
-    // 12. DELEGACAO DE EVENTOS GLOBAL
+    // 12. PLAYLIST DROPDOWN (Adicionar musica)
+    // =============================================
+    var activeDropdown = null;
+
+    function closePlaylistDropdown() {
+        if (activeDropdown) {
+            activeDropdown.remove();
+            activeDropdown = null;
+        }
+    }
+
+    function showPlaylistDropdown(btn) {
+        closePlaylistDropdown();
+
+        var card = btn.closest('[data-id]');
+        if (!card) return;
+
+        var trackId = card.dataset.id;
+        var meta = {
+            titulo: card.dataset.titulo || '',
+            artista: card.dataset.artista || '',
+            capa: card.dataset.capa || '',
+            audio: card.dataset.audio || ''
+        };
+
+        // Pega playlists da sidebar
+        var plItems = document.querySelectorAll('#sidebar-playlists .playlist-item');
+        if (plItems.length === 0) {
+            toast('Crie uma playlist primeiro');
+            return;
+        }
+
+        var dd = document.createElement('div');
+        dd.className = 'playlist-dropdown';
+        dd.innerHTML = '<div class="playlist-dropdown-header"><i class="fas fa-plus"></i> Adicionar a playlist</div>';
+
+        for (var i = 0; i < plItems.length; i++) {
+            var href = plItems[i].getAttribute('href') || '';
+            var match = href.match(/id=(\d+)/);
+            if (!match) continue;
+            var plId = match[1];
+            var plName = plItems[i].textContent.trim();
+
+            var item = document.createElement('div');
+            item.className = 'playlist-dropdown-item';
+            item.setAttribute('data-playlist-id', plId);
+            item.innerHTML = '<i class="fas fa-music"></i> ' + plName;
+            item.addEventListener('click', (function(pid, m) {
+                return function() {
+                    addToPlaylist(pid, trackId, m);
+                    closePlaylistDropdown();
+                };
+            })(plId, meta));
+            dd.appendChild(item);
+        }
+
+        // Posiciona proximo ao botao
+        var rect = btn.getBoundingClientRect();
+        dd.style.top = Math.max(10, rect.top - 10) + 'px';
+        dd.style.left = Math.min(rect.left, window.innerWidth - 240) + 'px';
+
+        document.body.appendChild(dd);
+        activeDropdown = dd;
+    }
+
+    function addToPlaylist(playlistId, trackId, meta) {
+        var bodyParts = [
+            'id_playlist=' + playlistId,
+            'musica_id=' + encodeURIComponent(trackId)
+        ];
+        if (isDeezerTrack(trackId)) {
+            bodyParts.push('titulo=' + encodeURIComponent(meta.titulo));
+            bodyParts.push('artista=' + encodeURIComponent(meta.artista));
+            bodyParts.push('capa=' + encodeURIComponent(meta.capa));
+            bodyParts.push('audio=' + encodeURIComponent(meta.audio));
+        }
+
+        fetch('/api/adicionar_playlist_track.php', {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: bodyParts.join('&')
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            toast(data.message || (data.status === 'success' ? 'Adicionada!' : 'Erro'));
+        })
+        .catch(function() { toast('Erro ao adicionar'); });
+    }
+
+    // =============================================
+    // 13. DELEGACAO DE EVENTOS GLOBAL
     // =============================================
     function initGlobalEvents() {
         document.addEventListener('click', function (e) {
             var target = e.target;
+
+            // --- Fechar dropdown de playlist ---
+            if (activeDropdown && !target.closest('.playlist-dropdown') && !target.closest('.btn-add-playlist')) {
+                closePlaylistDropdown();
+            }
+
+            // --- Botao adicionar a playlist ---
+            var btnAddPl = target.closest('.btn-add-playlist');
+            if (btnAddPl) {
+                e.preventDefault();
+                e.stopPropagation();
+                showPlaylistDropdown(btnAddPl);
+                return;
+            }
 
             // --- Abrir modal de playlist ---
             if (target.closest('.btn-trigger-modal-playlist')) {

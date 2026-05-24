@@ -386,6 +386,75 @@
             color: var(--color-danger);
         }
 
+        .btn-add-playlist {
+            position: absolute;
+            bottom: 0.8rem;
+            right: 3.5rem;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(52, 152, 219, 0.8);
+            border: none;
+            color: var(--color-text-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all var(--transition-speed) ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            z-index: 2;
+            opacity: 0;
+        }
+
+        .card:hover .btn-add-playlist {
+            opacity: 1;
+        }
+
+        .btn-add-playlist:hover {
+            background-color: var(--color-info);
+            transform: scale(1.15);
+        }
+
+        .playlist-dropdown {
+            position: fixed;
+            background: var(--color-background-medium);
+            border: 1px solid var(--color-border);
+            border-radius: var(--border-radius-base);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.6);
+            z-index: 3000;
+            min-width: 220px;
+            max-height: 250px;
+            overflow-y: auto;
+        }
+
+        .playlist-dropdown-header {
+            padding: 0.7rem 1rem;
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: var(--color-primary);
+            border-bottom: 1px solid var(--color-border);
+        }
+
+        .playlist-dropdown-item {
+            padding: 0.6rem 1rem;
+            cursor: pointer;
+            color: var(--color-text-light);
+            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            font-size: 0.9rem;
+        }
+
+        .playlist-dropdown-item:hover {
+            background: rgba(142, 68, 173, 0.3);
+        }
+
+        .playlist-dropdown-item i {
+            color: var(--color-primary);
+            font-size: 0.8rem;
+        }
+
         /* Tabelas */
         .table-container {
             background: rgba(31, 40, 58, 0.7);

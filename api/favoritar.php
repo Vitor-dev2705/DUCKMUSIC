@@ -1,53 +1,64 @@
 <?php
-// 1. Inicia o buffer para evitar que erros de texto quebrem o JSON do JavaScript
 ob_start();
-
 require_once __DIR__ . '/../includes/init.php';
-
-// 2. Limpa o buffer de saída (remove qualquer espaço ou aviso do PHP)
-ob_clean(); 
+ob_clean();
 header('Content-Type: application/json; charset=utf-8');
 
-// 3. Verificação de Segurança (Login)
 if (!isset($_SESSION['id_usuario'])) {
-    echo json_encode(['status' => 'error', 'message' => 'Usuário não logado']);
+    echo json_encode(['status' => 'error', 'message' => 'Usuario nao logado']);
     exit;
 }
 
-$id_musica = $_POST['musica_id'] ?? null;
-
-if (!$id_musica || !is_numeric($id_musica)) {
-    echo json_encode(['status' => 'error', 'message' => 'ID da música inválido']);
+$musica_id = $_POST['musica_id'] ?? null;
+if (!$musica_id) {
+    echo json_encode(['status' => 'error', 'message' => 'ID da musica invalido']);
     exit;
 }
 
 try {
     $id_usuario = $_SESSION['id_usuario'];
-    $id_musica = intval($id_musica);
+    $strId = strval($musica_id);
 
-    // 4. USANDO SUAS FUNÇÕES EXATAS: buscarUm e executarQuery
-    
-    // Verifica se já favoritou
-    $existe = buscarUm("SELECT 1 FROM favoritos WHERE id_usuario = ? AND id_musica = ?", [$id_usuario, $id_musica]);
+    // === DEEZER TRACK (dz_XXXXX) ===
+    if (strpos($strId, 'dz_') === 0) {
+        $titulo  = trim($_POST['titulo'] ?? '');
+        $artista = trim($_POST['artista'] ?? '');
+        $capa    = trim($_POST['capa'] ?? '');
+        $audio   = trim($_POST['audio'] ?? '');
 
-    if ($existe) {
-        // Se já existe, usa excluir (que por dentro usa a sua executarQuery)
-        excluir("DELETE FROM favoritos WHERE id_usuario = ? AND id_musica = ?", [$id_usuario, $id_musica]);
-        echo json_encode(['status' => 'success', 'favoritado' => false]);
+        $existe = buscarUm("SELECT 1 FROM favoritos_deezer WHERE id_usuario = ? AND deezer_id = ?", [$id_usuario, $strId]);
+
+        if ($existe) {
+            excluir("DELETE FROM favoritos_deezer WHERE id_usuario = ? AND deezer_id = ?", [$id_usuario, $strId]);
+            echo json_encode(['status' => 'success', 'favoritado' => false]);
+        } else {
+            inserir("INSERT INTO favoritos_deezer (id_usuario, deezer_id, titulo, artista, capa_url, audio_url) VALUES (?, ?, ?, ?, ?, ?)",
+                [$id_usuario, $strId, $titulo, $artista, $capa, $audio]);
+            echo json_encode(['status' => 'success', 'favoritado' => true]);
+        }
+
+    // === LOCAL TRACK (numeric ID) ===
     } else {
-        // Se não existe, usa inserir (que por dentro usa a sua executarQuery)
-        inserir("INSERT INTO favoritos (id_usuario, id_musica) VALUES (?, ?)", [$id_usuario, $id_musica]);
-        echo json_encode(['status' => 'success', 'favoritado' => true]);
+        if (!is_numeric($strId)) {
+            echo json_encode(['status' => 'error', 'message' => 'ID invalido']);
+            exit;
+        }
+        $id_musica = intval($strId);
+
+        $existe = buscarUm("SELECT 1 FROM favoritos WHERE id_usuario = ? AND id_musica = ?", [$id_usuario, $id_musica]);
+
+        if ($existe) {
+            excluir("DELETE FROM favoritos WHERE id_usuario = ? AND id_musica = ?", [$id_usuario, $id_musica]);
+            echo json_encode(['status' => 'success', 'favoritado' => false]);
+        } else {
+            inserir("INSERT INTO favoritos (id_usuario, id_musica) VALUES (?, ?)", [$id_usuario, $id_musica]);
+            echo json_encode(['status' => 'success', 'favoritado' => true]);
+        }
     }
 
 } catch (Exception $e) {
-    // Retorna erro de banco como JSON para o JavaScript ler
-    echo json_encode([
-        'status' => 'error', 
-        'message' => 'Erro no banco: ' . $e->getMessage()
-    ]);
+    echo json_encode(['status' => 'error', 'message' => 'Erro: ' . $e->getMessage()]);
 }
 
-// 5. Finaliza o script
 ob_end_flush();
 exit;

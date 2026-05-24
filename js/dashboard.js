@@ -35,9 +35,9 @@ function saveDeezerFavs(arr) {
     localStorage.setItem('duckDzFavs', JSON.stringify(arr));
 }
 
-// Unifica favoritos do PHP (locais) + Deezer (localStorage)
+// Favoritos vindos do PHP (locais + Deezer, ja unificados no servidor)
 const phpFavoritasRaw = window.APP_DATA ? window.APP_DATA.favoritasIds : [];
-const allFavoritas = phpFavoritasRaw.map(String).concat(getDeezerFavs());
+const allFavoritas = phpFavoritasRaw.map(String);
 
 function isFavorited(id) {
     return allFavoritas.indexOf(String(id)) !== -1;
@@ -286,37 +286,30 @@ function initPlayerEvents() {
 async function toggleFavorite(musicaId, button) {
     const strId = String(musicaId);
 
-    // DEEZER: favoritos salvos no localStorage
+    // Busca metadados do track pelo card no DOM
+    const card = document.querySelector('[data-id="' + strId + '"]');
+    const meta = card ? {
+        titulo: card.dataset.titulo || '',
+        artista: card.dataset.artista || '',
+        capa: card.dataset.capa || '',
+        audio: card.dataset.audio || ''
+    } : {};
+
+    // Monta body - inclui metadados para Deezer tracks
+    let bodyParts = ['musica_id=' + encodeURIComponent(strId)];
     if (isDeezerTrack(strId)) {
-        var dzFavs = getDeezerFavs();
-        var idx = dzFavs.indexOf(strId);
-        var isFav;
-
-        if (idx > -1) {
-            dzFavs.splice(idx, 1);
-            isFav = false;
-        } else {
-            dzFavs.push(strId);
-            isFav = true;
-        }
-        saveDeezerFavs(dzFavs);
-
-        // Atualiza array local unificado
-        var aIdx = allFavoritas.indexOf(strId);
-        if (isFav && aIdx === -1) allFavoritas.push(strId);
-        if (!isFav && aIdx > -1) allFavoritas.splice(aIdx, 1);
-
-        syncFavIcons(strId, isFav);
-        showToast(isFav ? "Adicionado aos favoritos" : "Removido dos favoritos");
-        return;
+        bodyParts.push('titulo=' + encodeURIComponent(meta.titulo));
+        bodyParts.push('artista=' + encodeURIComponent(meta.artista));
+        bodyParts.push('capa=' + encodeURIComponent(meta.capa));
+        bodyParts.push('audio=' + encodeURIComponent(meta.audio));
     }
 
-    // LOCAL: favoritos salvos no banco via API
+    // Envia para a API (funciona para AMBOS local e Deezer)
     try {
         const response = await fetch('/api/favoritar.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: 'musica_id=' + encodeURIComponent(musicaId)
+            body: bodyParts.join('&')
         });
         const data = await response.json();
 
@@ -348,10 +341,96 @@ async function toggleFavorite(musicaId, button) {
 }
 
 /**
+ * Dropdown de Playlists (Adicionar musica)
+ */
+let activeDropdown = null;
+
+function closePlaylistDropdown() {
+    if (activeDropdown) { activeDropdown.remove(); activeDropdown = null; }
+}
+
+function showPlaylistDropdown(btn) {
+    closePlaylistDropdown();
+    const card = btn.closest('[data-id]');
+    if (!card) return;
+
+    const trackId = card.dataset.id;
+    const meta = {
+        titulo: card.dataset.titulo || '',
+        artista: card.dataset.artista || '',
+        capa: card.dataset.capa || '',
+        audio: card.dataset.audio || ''
+    };
+
+    const plItems = document.querySelectorAll('.playlist-item');
+    if (plItems.length === 0) { showToast('Crie uma playlist primeiro'); return; }
+
+    const dd = document.createElement('div');
+    dd.className = 'playlist-dropdown';
+    dd.innerHTML = '<div class="playlist-dropdown-header"><i class="fas fa-plus"></i> Adicionar a playlist</div>';
+
+    plItems.forEach(pl => {
+        const href = pl.getAttribute('href') || '';
+        const match = href.match(/id=(\d+)/);
+        if (!match) return;
+        const plId = match[1];
+        const plName = pl.textContent.trim();
+
+        const item = document.createElement('div');
+        item.className = 'playlist-dropdown-item';
+        item.innerHTML = '<i class="fas fa-music"></i> ' + plName;
+        item.addEventListener('click', () => {
+            addToPlaylist(plId, trackId, meta);
+            closePlaylistDropdown();
+        });
+        dd.appendChild(item);
+    });
+
+    const rect = btn.getBoundingClientRect();
+    dd.style.top = Math.max(10, rect.top - 10) + 'px';
+    dd.style.left = Math.min(rect.left, window.innerWidth - 240) + 'px';
+    document.body.appendChild(dd);
+    activeDropdown = dd;
+}
+
+async function addToPlaylist(playlistId, trackId, meta) {
+    let bodyParts = ['id_playlist=' + playlistId, 'musica_id=' + encodeURIComponent(trackId)];
+    if (isDeezerTrack(trackId)) {
+        bodyParts.push('titulo=' + encodeURIComponent(meta.titulo));
+        bodyParts.push('artista=' + encodeURIComponent(meta.artista));
+        bodyParts.push('capa=' + encodeURIComponent(meta.capa));
+        bodyParts.push('audio=' + encodeURIComponent(meta.audio));
+    }
+    try {
+        const res = await fetch('/api/adicionar_playlist_track.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: bodyParts.join('&')
+        });
+        const data = await res.json();
+        showToast(data.message || (data.status === 'success' ? 'Adicionada!' : 'Erro'));
+    } catch(e) { showToast('Erro ao adicionar'); }
+}
+
+/**
  * Eventos Globais de Clique (Delegacao)
  */
 document.addEventListener('click', (e) => {
     const target = e.target;
+
+    // Fechar dropdown
+    if (activeDropdown && !target.closest('.playlist-dropdown') && !target.closest('.btn-add-playlist')) {
+        closePlaylistDropdown();
+    }
+
+    // Botao adicionar a playlist
+    const btnAddPl = target.closest('.btn-add-playlist');
+    if (btnAddPl) {
+        e.preventDefault();
+        e.stopPropagation();
+        showPlaylistDropdown(btnAddPl);
+        return;
+    }
 
     // Botao Favoritar
     const btnFav = target.closest('.btn-fav') || target.closest('#player-fav-btn');

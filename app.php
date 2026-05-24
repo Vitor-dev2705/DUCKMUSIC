@@ -17,8 +17,12 @@ if (!$usuario) {
 
 $usuario_permitido = in_array($usuario['nivel_admin'], [1, 2]);
 
-$favoritas_db = buscarTodos("SELECT id_musica FROM favoritos WHERE id_usuario = ?", [$id_usuario_logado]);
-$_SESSION['favoritas_ids'] = array_column($favoritas_db, 'id_musica');
+$favoritas_local = buscarTodos("SELECT id_musica FROM favoritos WHERE id_usuario = ?", [$id_usuario_logado]);
+$favoritas_dz = buscarTodos("SELECT deezer_id FROM favoritos_deezer WHERE id_usuario = ?", [$id_usuario_logado]);
+$_SESSION['favoritas_ids'] = array_merge(
+    array_map('strval', array_column($favoritas_local, 'id_musica')),
+    array_column($favoritas_dz, 'deezer_id')
+);
 
 $minhas_playlists = buscarTodos("SELECT id, nome FROM playlists WHERE id_usuario_criador = ? ORDER BY nome ASC", [$id_usuario_logado]);
 ?>
