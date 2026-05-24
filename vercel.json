@@ -1,6 +1,7 @@
 {
   "builds": [
     { "src": "index.php", "use": "vercel-php@0.7.2" },
+    { "src": "app.php", "use": "vercel-php@0.7.2" },
     { "src": "terms.php", "use": "vercel-php@0.7.2" },
     { "src": "api/**/*.php", "use": "vercel-php@0.7.2" },
     { "src": "auth/**/*.php", "use": "vercel-php@0.7.2" },
@@ -13,6 +14,7 @@
     { "src": "/css/(.*)", "dest": "/css/$1" },
     { "src": "/js/(.*)", "dest": "/js/$1" },
     { "src": "/assets/(.*)", "dest": "/assets/$1" },
+    { "src": "/app", "dest": "/app.php" },
     { "src": "/", "dest": "/index.php" },
     { "src": "/(.*\\.php)", "dest": "/$1" }
   ]

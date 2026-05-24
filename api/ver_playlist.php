@@ -245,18 +245,19 @@ $usuario = buscarUm("SELECT *, possui_estrela_apoio FROM usuarios WHERE id = ?",
                 <tbody>
                     <?php foreach ($musicas_da_playlist as $index => $musica): ?>
                         <?php
-                            $caminhoCapaMusica = (!empty($musica['caminho_capa']) && file_exists($musica['caminho_capa'])) ? $musica['caminho_capa'] : 'capa-padrao.jpg';
+                            $caminhoCapaMusica = resolverMidia($musica['caminho_capa']);
+                            $caminhoAudioMusica = resolverMidia($musica['caminho_arquivo']);
                         ?>
-                        <tr class="song-row" 
-                            data-id="<?= $musica['id'] ?>" 
-                            data-audio="<?= htmlspecialchars($musica['caminho_arquivo']) ?>" 
-                            data-titulo="<?= htmlspecialchars($musica['titulo']) ?>" 
-                            data-artista="<?= htmlspecialchars($musica['nome_artista'] ?: 'Desconhecido') ?>" 
+                        <tr class="song-row"
+                            data-id="<?= $musica['id'] ?>"
+                            data-audio="<?= htmlspecialchars($caminhoAudioMusica) ?>"
+                            data-titulo="<?= htmlspecialchars($musica['titulo']) ?>"
+                            data-artista="<?= htmlspecialchars($musica['nome_artista'] ?: 'Desconhecido') ?>"
                             data-capa="<?= htmlspecialchars($caminhoCapaMusica) ?>">
                             <td><?= $index + 1 ?></td>
                             <td>
                                 <div class="song">
-                                    <img src="<?= htmlspecialchars($caminhoCapaMusica) ?>" class="song-img" alt="Capa de <?= htmlspecialchars($musica['titulo']) ?>">
+                                    <img src="<?= htmlspecialchars($caminhoCapaMusica) ?>" class="song-img" alt="Capa de <?= htmlspecialchars($musica['titulo']) ?>" onerror="this.src='/assets/img/capa-padrao.svg'">
                                     <div>
                                         <strong><?= htmlspecialchars($musica['titulo']) ?></strong><br>
                                         <small><?= htmlspecialchars($musica['nome_artista'] ?: 'Artista Desconhecido') ?></small>

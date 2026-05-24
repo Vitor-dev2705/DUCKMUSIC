@@ -263,7 +263,7 @@
             <a href="#"><i class="fab fa-twitter"></i></a>
             <a href="#"><i class="fab fa-discord"></i></a>
         </div>
-        <p>&copy; 2025 DuckMusic. Desenvolvido com <span style="color: var(--primary);">❤</span> para músicos.</p>
+        <p>&copy; 2025 DuckMusic.</p>
     </footer>
 
     <script>

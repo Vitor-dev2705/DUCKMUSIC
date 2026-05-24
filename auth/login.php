@@ -46,7 +46,7 @@ if ($agora < $_SESSION['tempo_bloqueio']) {
                 unset($_SESSION['tentativas_login']);
                 unset($_SESSION['tempo_bloqueio']);
 
-                header("Location: ../paginas/dashboard.php");
+                header("Location: /app.php");
                 exit();
             } else {
                 // Falha no login

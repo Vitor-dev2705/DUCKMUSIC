@@ -50,8 +50,7 @@ $minhas_playlists = buscarTodos("SELECT id, nome FROM playlists WHERE id_usuario
 // Função para verificar capa da música
 function verificarCapa($caminho)
 {
-    $caminhoCompleto = '../' . $caminho;
-    return !empty($caminho) && file_exists($caminhoCompleto) ? $caminhoCompleto : 'capa-padrao.jpg';
+    return resolverMidia($caminho, '/assets/img/capa-padrao.svg');
 }
 ?>
 <!DOCTYPE html>
@@ -160,7 +159,7 @@ function verificarCapa($caminho)
             ?>
                 <div class="card"
                     data-id="<?= $musica['id'] ?>"
-                    data-audio="<?= htmlspecialchars('../' . $musica['caminho_arquivo']) ?>"
+                    data-audio="<?= htmlspecialchars(resolverMidia($musica['caminho_arquivo'])) ?>"
                     data-titulo="<?= htmlspecialchars($musica['titulo']) ?>"
                     data-artista="<?= htmlspecialchars($musica['nome_artista'] ?: 'Artista Desconhecido') ?>"
                     data-capa="<?= htmlspecialchars($caminhoCapa) ?>">
@@ -186,7 +185,7 @@ function verificarCapa($caminho)
             ?>
                 <div class="card"
                     data-id="<?= $musica['id'] ?>"
-                    data-audio="<?= htmlspecialchars('../' . $musica['caminho_arquivo']) ?>"
+                    data-audio="<?= htmlspecialchars(resolverMidia($musica['caminho_arquivo'])) ?>"
                     data-titulo="<?= htmlspecialchars($musica['titulo']) ?>"
                     data-artista="<?= htmlspecialchars($musica['nome_artista'] ?: 'Artista Desconhecido') ?>"
                     data-capa="<?= htmlspecialchars($caminhoCapa) ?>">
@@ -223,7 +222,7 @@ function verificarCapa($caminho)
                     ?>
                         <tr class="song-row"
                             data-id="<?= $musica['id'] ?>"
-                            data-audio="<?= htmlspecialchars('../' . $musica['caminho_arquivo']) ?>"
+                            data-audio="<?= htmlspecialchars(resolverMidia($musica['caminho_arquivo'])) ?>"
                             data-titulo="<?= htmlspecialchars($musica['titulo']) ?>"
                             data-artista="<?= htmlspecialchars($musica['nome_artista'] ?: 'Artista Desconhecido') ?>"
                             data-capa="<?= htmlspecialchars($caminhoCapa) ?>">

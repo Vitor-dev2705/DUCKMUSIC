@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="300" height="300" viewBox="0 0 300 300">
+  <rect width="300" height="300" fill="#1f283a"/>
+  <circle cx="150" cy="130" r="50" fill="none" stroke="#8e44ad" stroke-width="4"/>
+  <path d="M135 130 L170 130 M160 110 L160 150" stroke="#8e44ad" stroke-width="4" stroke-linecap="round"/>
+  <text x="150" y="210" text-anchor="middle" fill="#bdc3c7" font-family="sans-serif" font-size="16">DuckMusic</text>
+</svg>

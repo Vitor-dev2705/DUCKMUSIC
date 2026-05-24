@@ -130,14 +130,14 @@ $_SESSION['favoritas_ids'] = array_column($favoritas_ids_db ?? [], 'id_musica');
                 <div class="cards-container">
                     <?php if (!empty($favoritas)): ?>
                         <?php foreach ($favoritas as $musica):
-                            $capa = !empty($musica['caminho_capa']) ? '../' . $musica['caminho_capa'] : '';
+                            $capa = resolverMidia($musica['caminho_capa']);
                         ?>
-                            <div class="card" data-id="<?= $musica['id'] ?>" data-audio="../<?= $musica['caminho_arquivo'] ?>"
+                            <div class="card" data-id="<?= $musica['id'] ?>" data-audio="<?= htmlspecialchars(resolverMidia($musica['caminho_arquivo'])) ?>"
                                 data-titulo="<?= htmlspecialchars($musica['titulo']) ?>"
                                 data-artista="<?= htmlspecialchars($musica['nome_artista'] ?: 'Artista Desconhecido') ?>"
-                                data-capa="<?= $capa ?>">
+                                data-capa="<?= htmlspecialchars($capa) ?>">
                                 <div class="card-img-container">
-                                    <img src="<?= $capa ?>" class="card-img" onerror="this.src=''">
+                                    <img src="<?= htmlspecialchars($capa) ?>" class="card-img" onerror="this.src='/assets/img/capa-padrao.svg'">
                                     <div class="card-overlay"><i class="fas fa-play"></i></div>
                                 </div>
                                 <div class="card-content">
@@ -184,13 +184,13 @@ $_SESSION['favoritas_ids'] = array_column($favoritas_ids_db ?? [], 'id_musica');
                 <div class="cards-container">
                     <?php foreach ($minhas_musicas as $musica):
                         $isFavorita = in_array($musica['id'], $_SESSION['favoritas_ids']);
-                        $capa = !empty($musica['caminho_capa']) ? '../' . $musica['caminho_capa'] : '';
+                        $capa = resolverMidia($musica['caminho_capa']);
                     ?>
-                        <div class="card" data-id="<?= $musica['id'] ?>" data-audio="../<?= $musica['caminho_arquivo'] ?>"
+                        <div class="card" data-id="<?= $musica['id'] ?>" data-audio="<?= htmlspecialchars(resolverMidia($musica['caminho_arquivo'])) ?>"
                             data-titulo="<?= htmlspecialchars($musica['titulo']) ?>"
-                            data-artista="<?= htmlspecialchars($musica['nome_artista']) ?>" data-capa="<?= $capa ?>">
+                            data-artista="<?= htmlspecialchars($musica['nome_artista']) ?>" data-capa="<?= htmlspecialchars($capa) ?>">
                             <div class="card-img-container">
-                                <img src="<?= $capa ?>" class="card-img" onerror="this.src=''">
+                                <img src="<?= htmlspecialchars($capa) ?>" class="card-img" onerror="this.src='/assets/img/capa-padrao.svg'">
                                 <div class="card-overlay"><i class="fas fa-play"></i></div>
                             </div>
                             <div class="card-content">

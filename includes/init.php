@@ -15,3 +15,18 @@ session_set_cookie_params([
 ]);
 
 session_start();
+
+/**
+ * Resolve caminho de arquivo de midia.
+ * Se ja for URL absoluta (Supabase), retorna como esta.
+ * Se for caminho local, converte para caminho absoluto.
+ */
+function resolverMidia($caminho, $fallback = '/assets/img/capa-padrao.svg') {
+    if (empty($caminho)) return $fallback;
+    // URL completa do Supabase ou CDN
+    if (strpos($caminho, 'http://') === 0 || strpos($caminho, 'https://') === 0) {
+        return $caminho;
+    }
+    // Caminho local - converte para absoluto
+    return '/' . ltrim($caminho, '/');
+}
