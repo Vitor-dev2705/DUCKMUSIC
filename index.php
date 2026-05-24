@@ -192,7 +192,7 @@
         <div class="logo"><span>🦆</span> DuckMusic</div>
         <div class="auth-group">
             <a href="/auth/login.php" class="btn btn-login">Entrar</a>
-            <a href="/auth/register.php" class="btn btn-register">Registrar</a>
+            <a href="/auth/registro.php" class="btn btn-register">Registrar</a>
             <button onclick="doar()" class="btn btn-donate"><i class="fas fa-heart"></i> Apoiar</button>
         </div>
     </nav>

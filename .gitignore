@@ -6,3 +6,5 @@ vendor/
 Thumbs.db
 assets/uploads/musicas/*
 !assets/uploads/musicas/.gitkeep
+
+.vercel

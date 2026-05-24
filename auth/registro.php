@@ -11,84 +11,73 @@ $dados = [
     'telefone'        => ''
 ];
 
+// Limites de data (13-150 anos)
 $dataAtual  = new DateTime();
 $dataMaxima = $dataAtual->modify('-13 years')->format('Y-m-d');
 $dataMinima = (new DateTime())->modify('-150 years')->format('Y-m-d');
 
-$ip = $_SERVER['REMOTE_ADDR'];
-$dataLimite = date('Y-m-d H:i:s', strtotime('-15 minutes'));
-
-$stmtTentativas = $db->prepare("SELECT COUNT(*) FROM logs_registro WHERE ip = ? AND data_hora >= ?");
-$stmtTentativas->execute([$ip, $dataLimite]);
-$tentativas = $stmtTentativas->fetchColumn();
-
-if ($tentativas >= 5) {
-    $erro = "Limite de tentativas excedido. Tente novamente em 15 minutos.";
-}
-
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($erro)) {
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!verificarTokenCSRF($_POST['csrf_token'] ?? '')) {
-        $erro = "Falha na validação. Tente novamente.";
+        $erro = "Falha na validacao. Tente novamente.";
     } else {
         $dados = [
-            'nome_completo'   => filter_input(INPUT_POST, 'nome_completo', FILTER_SANITIZE_SPECIAL_CHARS),
-            'nome_usuario'    => filter_input(INPUT_POST, 'nome_usuario', FILTER_SANITIZE_SPECIAL_CHARS),
-            'email'           => filter_input(INPUT_POST, 'email', FILTER_SANITIZE_EMAIL),
-            'data_nascimento' => filter_input(INPUT_POST, 'data_nascimento'),
+            'nome_completo'   => trim($_POST['nome_completo'] ?? ''),
+            'nome_usuario'    => trim($_POST['nome_usuario'] ?? ''),
+            'email'           => trim($_POST['email'] ?? ''),
+            'data_nascimento' => $_POST['data_nascimento'] ?? '',
             'telefone'        => preg_replace('/\D/', '', $_POST['telefone'] ?? '')
         ];
 
         $senha = $_POST['senha'] ?? '';
         $confirmar_senha = $_POST['confirmar_senha'] ?? '';
 
+        // Validacoes
         if (empty($dados['nome_completo'])) {
-            $erro = "Nome completo é obrigatório.";
+            $erro = "Nome completo e obrigatorio.";
         } elseif (strlen($dados['nome_usuario']) < 4) {
-            $erro = "Nome de usuário deve ter pelo menos 4 caracteres.";
+            $erro = "Nome de usuario deve ter pelo menos 4 caracteres.";
+        } elseif (!preg_match('/^[a-zA-Z0-9_]+$/', $dados['nome_usuario'])) {
+            $erro = "Nome de usuario pode conter apenas letras, numeros e underscore.";
         } elseif (!filter_var($dados['email'], FILTER_VALIDATE_EMAIL)) {
-            $erro = "E-mail inválido.";
+            $erro = "E-mail invalido.";
         } elseif (strlen($senha) < 8) {
             $erro = "A senha deve ter pelo menos 8 caracteres.";
         } elseif (!preg_match('/^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/', $senha)) {
-            $erro = "A senha precisa conter pelo menos 1 letra maiúscula, 1 número e 1 caractere especial.";
+            $erro = "A senha precisa conter 1 maiuscula, 1 numero e 1 caractere especial.";
         } elseif ($senha !== $confirmar_senha) {
-            $erro = "As senhas não coincidem.";
+            $erro = "As senhas nao coincidem.";
         } elseif (!preg_match('/^\d{10,11}$/', $dados['telefone'])) {
-            $erro = "Telefone inválido. Use apenas números (DDD + número).";
+            $erro = "Telefone invalido. Use apenas numeros (DDD + numero).";
         } elseif (!validarDataNascimento($dados['data_nascimento'])) {
-            $erro = "Data de nascimento inválida. Você deve ter entre 13 e 150 anos.";
+            $erro = "Data de nascimento invalida. Idade minima: 13 anos.";
         }
 
         if (empty($erro)) {
             $existente = buscarUm("SELECT id FROM usuarios WHERE nome_usuario = ? OR email = ?",
                                   [$dados['nome_usuario'], $dados['email']]);
 
-            $dataHora  = date('Y-m-d H:i:s');
-            $sucesso   = $existente ? 0 : 1;
-
-            $stmtLog = $db->prepare("INSERT INTO logs_registro (nome_usuario, email, ip, sucesso, data_hora)
-                                     VALUES (?, ?, ?, ?, ?)");
-            $stmtLog->execute([$dados['nome_usuario'], $dados['email'], $ip, $sucesso, $dataHora]);
-
             if (!$existente) {
                 $senha_hash = password_hash($senha, PASSWORD_DEFAULT);
 
-                $stmt = $db->prepare("INSERT INTO usuarios (nome_completo, nome_usuario, email, senha, data_nascimento, telefone)
-                                      VALUES (?, ?, ?, ?, ?, ?)");
-                $stmt->execute([
-                    $dados['nome_completo'],
-                    $dados['nome_usuario'],
-                    $dados['email'],
-                    $senha_hash,
-                    $dados['data_nascimento'],
-                    $dados['telefone']
-                ]);
+                try {
+                    inserir("INSERT INTO usuarios (nome_completo, nome_usuario, email, senha, data_nascimento, telefone)
+                             VALUES (?, ?, ?, ?, ?, ?)", [
+                        $dados['nome_completo'],
+                        $dados['nome_usuario'],
+                        $dados['email'],
+                        $senha_hash,
+                        $dados['data_nascimento'],
+                        $dados['telefone']
+                    ]);
 
-                $_SESSION['mensagem'] = "Conta criada com sucesso! Faça login.";
-                header("Location: login.php");
-                exit();
+                    $_SESSION['mensagem'] = "Conta criada com sucesso! Faca login.";
+                    header("Location: login.php");
+                    exit();
+                } catch (Exception $e) {
+                    $erro = "Erro ao criar conta. Tente novamente.";
+                }
             } else {
-                $erro = "Nome de usuário ou e-mail já está em uso.";
+                $erro = "Nome de usuario ou e-mail ja esta em uso.";
             }
         }
     }
@@ -96,7 +85,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($erro)) {
 
 $csrf_token = gerarTokenCSRF();
 ?>
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -104,8 +92,8 @@ $csrf_token = gerarTokenCSRF();
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Registro - DuckMusic</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="auth.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/auth.css">
 </head>
 <body>
     <div class="auth-container">
@@ -118,44 +106,78 @@ $csrf_token = gerarTokenCSRF();
             <div class="notification error"><?= htmlsafe($erro) ?></div>
         <?php endif; ?>
 
-        <form method="POST">
+        <form method="POST" id="registroForm">
             <input type="hidden" name="csrf_token" value="<?= htmlsafe($csrf_token) ?>">
 
             <div class="form-group">
-                <input type="text" class="form-control" name="nome_completo" placeholder="Nome completo" value="<?= htmlsafe($dados['nome_completo']) ?>" required>
+                <input type="text" class="form-control" name="nome_completo"
+                    placeholder="Nome completo" required
+                    value="<?= htmlsafe($dados['nome_completo']) ?>">
             </div>
 
             <div class="form-group">
-                <input type="text" class="form-control" name="nome_usuario" placeholder="Nome de usuário" value="<?= htmlsafe($dados['nome_usuario']) ?>" required>
+                <input type="text" class="form-control" name="nome_usuario"
+                    placeholder="Nome de usuario" required
+                    value="<?= htmlsafe($dados['nome_usuario']) ?>">
             </div>
 
             <div class="form-group">
-                <input type="email" class="form-control" name="email" placeholder="E-mail" value="<?= htmlsafe($dados['email']) ?>" required>
+                <input type="email" class="form-control" name="email"
+                    placeholder="E-mail" required
+                    value="<?= htmlsafe($dados['email']) ?>">
             </div>
 
             <div class="form-group">
-                <input type="password" class="form-control" name="senha" placeholder="Senha" required>
+                <input type="password" class="form-control" id="senha" name="senha"
+                    placeholder="Senha" required>
+                <i class="fas fa-eye toggle-password" onclick="togglePassword('senha', this)"></i>
             </div>
 
             <div class="form-group">
-                <input type="password" class="form-control" name="confirmar_senha" placeholder="Confirmar senha" required>
+                <input type="password" class="form-control" id="confirmar_senha" name="confirmar_senha"
+                    placeholder="Confirmar senha" required>
+                <i class="fas fa-eye toggle-password" onclick="togglePassword('confirmar_senha', this)"></i>
             </div>
 
             <div class="form-group">
                 <label for="data_nascimento">Data de nascimento</label>
-                <input type="date" class="form-control" name="data_nascimento" value="<?= htmlsafe($dados['data_nascimento']) ?>" min="<?= $dataMinima ?>" max="<?= $dataMaxima ?>" required>
+                <input type="date" class="form-control" name="data_nascimento"
+                    min="<?= $dataMinima ?>" max="<?= $dataMaxima ?>" required
+                    value="<?= htmlsafe($dados['data_nascimento']) ?>">
             </div>
 
             <div class="form-group">
-                <input type="tel" class="form-control" name="telefone" placeholder="Telefone (com DDD)" value="<?= htmlsafe($dados['telefone']) ?>" required>
+                <input type="tel" class="form-control" name="telefone"
+                    placeholder="Telefone (com DDD)" required
+                    value="<?= htmlsafe($dados['telefone']) ?>">
             </div>
 
-            <button type="submit" class="btn">Registrar</button>
+            <button type="submit" class="btn" id="registroBtn">Registrar</button>
         </form>
 
         <div class="auth-links">
-            <a href="login.php">Já tem uma conta? Faça login</a>
+            <a href="login.php">Ja tem uma conta? Entrar</a>
         </div>
     </div>
+
+    <script>
+        function togglePassword(fieldId, icon) {
+            var s = document.getElementById(fieldId);
+            if (s.type === 'password') {
+                s.type = 'text';
+                icon.classList.replace('fa-eye', 'fa-eye-slash');
+            } else {
+                s.type = 'password';
+                icon.classList.replace('fa-eye-slash', 'fa-eye');
+            }
+        }
+
+        document.getElementById('registroForm').addEventListener('submit', function() {
+            var btn = document.getElementById('registroBtn');
+            if (!this.checkValidity()) return;
+            btn.innerHTML = 'Criando conta... <span class="spinner"></span>';
+            btn.style.pointerEvents = 'none';
+        });
+    </script>
 </body>
 </html>

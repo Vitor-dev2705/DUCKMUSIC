@@ -21,7 +21,7 @@ if ($agora < $_SESSION['tempo_bloqueio']) {
 
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (!verificarTokenCSRF($_POST['csrf_token'] ?? '')) {
-            $erro = "Falha na validação. Tente novamente.";
+            $erro = "Falha na validacao. Tente novamente.";
         } else {
             $login = trim($_POST['login'] ?? '');
             $senha = trim($_POST['senha'] ?? '');
@@ -30,8 +30,7 @@ if ($agora < $_SESSION['tempo_bloqueio']) {
                 $is_email = filter_var($login, FILTER_VALIDATE_EMAIL);
                 $campo = $is_email ? 'email' : 'nome_usuario';
 
-                $sql = "SELECT id, nome_usuario, senha, nivel_admin FROM usuarios WHERE $campo = ? LIMIT 1";
-                $usuario = buscarUm($sql, [$login]);
+                $usuario = buscarUm("SELECT id, nome_usuario, senha, nivel_admin FROM usuarios WHERE $campo = ? LIMIT 1", [$login]);
 
                 if ($usuario && password_verify($senha, $usuario['senha'])) {
                     session_regenerate_id(true);
@@ -41,6 +40,7 @@ if ($agora < $_SESSION['tempo_bloqueio']) {
 
                     unset($_SESSION['tentativas_login']);
                     unset($_SESSION['tempo_bloqueio']);
+                    unset($_SESSION['csrf_token']);
 
                     header("Location: /app.php");
                     exit();
@@ -49,11 +49,11 @@ if ($agora < $_SESSION['tempo_bloqueio']) {
 
                     if ($_SESSION['tentativas_login'] >= $limite_tentativas) {
                         $_SESSION['tempo_bloqueio'] = time() + $tempo_bloqueio_segundos;
-                        $erro = "Muitas tentativas inválidas. Bloqueado por 15 minutos.";
+                        $erro = "Muitas tentativas invalidas. Bloqueado por 15 minutos.";
                         $bloqueado = true;
                     } else {
                         $restantes = $limite_tentativas - $_SESSION['tentativas_login'];
-                        $erro = "Credenciais inválidas. Restam {$restantes} tentativa(s).";
+                        $erro = "Credenciais invalidas. Restam {$restantes} tentativa(s).";
                     }
                 }
             }
@@ -67,16 +67,16 @@ $csrf_token = gerarTokenCSRF();
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>Login - DuckMusic</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - DuckMusic</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="auth.css">
+    <link rel="stylesheet" href="/css/auth.css">
 </head>
 <body>
     <div class="auth-container">
         <div class="logo">
-            <img src="../assets/logo.png" alt="DuckMusic Logo">
+            <i class="fas fa-compact-disc"></i>
             <h1>DuckMusic</h1>
         </div>
 
@@ -89,32 +89,22 @@ $csrf_token = gerarTokenCSRF();
             <div class="notification error"><?= htmlsafe($erro) ?></div>
         <?php endif; ?>
 
-        <form method="POST" id="loginForm" <?= $bloqueado ? 'style="opacity:0.6;"' : '' ?>>
+        <form method="POST" id="loginForm" <?= $bloqueado ? 'style="opacity:0.6; cursor:not-allowed;"' : '' ?>>
             <input type="hidden" name="csrf_token" value="<?= htmlsafe($csrf_token) ?>">
 
             <div class="form-group">
-                <input type="text"
-                    class="form-control"
-                    name="login"
-                    placeholder="E-mail ou nome de usuário"
-                    required
+                <input type="text" class="form-control" name="login"
+                    placeholder="E-mail ou nome de usuario" required
                     <?= $bloqueado ? 'disabled' : '' ?>
-                    value="<?= htmlsafe($_POST['login'] ?? '') ?>">
+                    value="<?= isset($_POST['login']) ? htmlsafe($_POST['login']) : '' ?>">
             </div>
 
             <div class="form-group">
-                <input type="password"
-                    class="form-control"
-                    id="senha"
-                    name="senha"
-                    placeholder="Senha"
-                    required
-                    <?= $bloqueado ? 'disabled' : '' ?>>
-
-                <i class="fas fa-eye toggle-password"
-                    id="toggleIcon"
-                    onclick="togglePassword()"
-                    style="<?= $bloqueado ? 'display:none;' : '' ?>"></i>
+                <input type="password" class="form-control" id="senha" name="senha"
+                    placeholder="Senha" required <?= $bloqueado ? 'disabled' : '' ?>>
+                <?php if (!$bloqueado): ?>
+                    <i class="fas fa-eye toggle-password" id="toggleIcon" onclick="togglePassword()"></i>
+                <?php endif; ?>
             </div>
 
             <button type="submit" class="btn" id="loginBtn" <?= $bloqueado ? 'disabled' : '' ?>>
@@ -130,22 +120,20 @@ $csrf_token = gerarTokenCSRF();
 
     <script>
         function togglePassword() {
-            const senhaInput = document.getElementById('senha');
-            const icon = document.getElementById('toggleIcon');
-
-            if (senhaInput.type === 'password') {
-                senhaInput.type = 'text';
-                icon.classList.replace('fa-eye', 'fa-eye-slash');
+            var s = document.getElementById('senha');
+            var i = document.getElementById('toggleIcon');
+            if (s.type === 'password') {
+                s.type = 'text';
+                i.classList.replace('fa-eye', 'fa-eye-slash');
             } else {
-                senhaInput.type = 'password';
-                icon.classList.replace('fa-eye-slash', 'fa-eye');
+                s.type = 'password';
+                i.classList.replace('fa-eye-slash', 'fa-eye');
             }
         }
 
         document.getElementById('loginForm').addEventListener('submit', function(e) {
-            const btn = document.getElementById('loginBtn');
+            var btn = document.getElementById('loginBtn');
             if (!this.checkValidity()) return;
-
             btn.innerHTML = 'Validando... <span class="spinner"></span>';
             btn.style.pointerEvents = 'none';
         });
