@@ -2,6 +2,14 @@
 require_once __DIR__ . '/../includes/init.php';
 require_once __DIR__ . '/../includes/deezer.php';
 
+// Redireciona para o SPA se acessada diretamente (mantem player persistente)
+if (empty($_SERVER['HTTP_X_SPA'])) {
+    if (isset($_SESSION['id_usuario'])) {
+        header("Location: /app.php");
+        exit();
+    }
+}
+
 if (!isset($_SESSION['id_usuario'])) {
     header("Location: login.php");
     exit();
