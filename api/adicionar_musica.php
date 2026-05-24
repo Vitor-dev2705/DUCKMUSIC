@@ -19,7 +19,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['caminho_audio_supabas
         $duracao = $_POST['duracao'];
         $genero_nome = $_POST['genero'];
         $caminhoBancoAudio = $_POST['caminho_audio_supabase'];
-        $caminhoBancoCapa = $_POST['caminho_capa_supabase'] ?: 'assets/img/capa-padrao.jpg';
+        $caminhoBancoCapa = $_POST['caminho_capa_supabase'] ?: '/assets/img/capa-padrao.svg';
 
         $db->beginTransaction();
 
@@ -149,78 +149,117 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['caminho_audio_supabas
     </div>
 
     <script>
-        // CONFIGURAÇÃO SUPABASE
-        const SUPABASE_URL = 'SUA_URL_AQUI';
-        const SUPABASE_KEY = 'SUA_ANON_KEY_AQUI';
-        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        // CONFIGURACAO SUPABASE
+        const SUPABASE_URL = 'https://shbqixwzxtwochcgkakv.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_i8XXn8-TmGMO2KK-A5zNPg_I9_HsHyg';
+        const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         async function startUpload() {
             const btn = document.getElementById('btnSubmit');
             const audioFile = document.getElementById('arquivo_musica').files[0];
             const capaFile = document.getElementById('arquivo_capa').files[0];
-            
-            if (!audioFile) return alert("Selecione a música!");
+            const progBar = document.getElementById('progress-bar');
+
+            if (!audioFile) return alert("Selecione a musica!");
+
+            // Valida campos obrigatorios
+            var titulo = document.getElementById('titulo').value.trim();
+            var artista = document.getElementById('artista').value.trim();
+            var duracao = document.getElementById('duracao').value.trim();
+            if (!titulo || !artista || !duracao) return alert("Preencha titulo, artista e duracao!");
 
             btn.disabled = true;
-            btn.innerText = "Enviando arquivo pesado...";
+            btn.innerText = "Enviando...";
             document.getElementById('progress-container').style.display = 'block';
+            progBar.style.width = '10%';
 
             try {
-                // 1. Upload do Áudio
-                const audioName = Date.now() + '_' + audioFile.name.replace(/\s/g, '_');
-                const { data: audioData, error: audioError } = await supabase.storage
-                    .from('musicas')
-                    .upload(audioName, audioFile);
+                // 1. Upload do Audio para Supabase Storage
+                var audioName = Date.now() + '_' + audioFile.name.replace(/\s/g, '_');
+                progBar.style.width = '20%';
 
-                if (audioError) throw audioError;
-                const { data: audioUrl } = supabase.storage.from('musicas').getPublicUrl(audioName);
+                var uploadResult = await sb.storage
+                    .from('musicas')
+                    .upload(audioName, audioFile, {
+                        cacheControl: '3600',
+                        upsert: false
+                    });
+
+                if (uploadResult.error) throw uploadResult.error;
+                progBar.style.width = '60%';
+
+                var audioUrlResult = sb.storage.from('musicas').getPublicUrl(audioName);
+                var publicAudioUrl = audioUrlResult.data.publicUrl;
 
                 // 2. Upload da Capa (se houver)
-                let publicCapaUrl = '';
+                var publicCapaUrl = '';
                 if (capaFile) {
-                    const capaName = Date.now() + '_capa_' + capaFile.name.replace(/\s/g, '_');
-                    const { data: capaData, error: capaError } = await supabase.storage
+                    var capaName = Date.now() + '_capa_' + capaFile.name.replace(/\s/g, '_');
+                    var capaResult = await sb.storage
                         .from('capas')
-                        .upload(capaName, capaFile);
-                    
-                    if (!capaError) {
-                        const { data: capaUrl } = supabase.storage.from('capas').getPublicUrl(capaName);
-                        publicCapaUrl = capaUrl.publicUrl;
+                        .upload(capaName, capaFile, {
+                            cacheControl: '3600',
+                            upsert: false
+                        });
+
+                    if (!capaResult.error) {
+                        var capaUrlResult = sb.storage.from('capas').getPublicUrl(capaName);
+                        publicCapaUrl = capaUrlResult.data.publicUrl;
                     }
                 }
+                progBar.style.width = '80%';
 
-                // 3. Enviar para o PHP via POST Oculto
-                finalizarNoPHP(audioUrl.publicUrl, publicCapaUrl);
+                // 3. Enviar URLs + metadados para o PHP salvar no banco
+                finalizarNoPHP(publicAudioUrl, publicCapaUrl);
+                progBar.style.width = '100%';
 
             } catch (err) {
-                alert("Erro no Supabase: " + err.message);
+                console.error('Supabase error:', err);
+                alert("Erro no upload: " + (err.message || err.error || 'Erro desconhecido'));
                 btn.disabled = false;
                 btn.innerText = "TENTAR NOVAMENTE";
+                progBar.style.width = '0%';
             }
         }
 
         function finalizarNoPHP(urlAudio, urlCapa) {
-            const form = document.getElementById('uploadForm');
-            const formData = new FormData();
-            
-            // Pega todos os campos de texto do formulário
+            var formData = new FormData();
+
             formData.append('titulo', document.getElementById('titulo').value);
             formData.append('artista', document.getElementById('artista').value);
             formData.append('album', document.getElementById('album').value);
             formData.append('duracao', document.getElementById('duracao').value);
             formData.append('genero', document.getElementById('genero').value);
-            
-            // Envia as URLs geradas pelo Supabase
             formData.append('caminho_audio_supabase', urlAudio);
             formData.append('caminho_capa_supabase', urlCapa);
 
-            // Envia via Fetch para o próprio arquivo (PHP no topo processa)
-            fetch('', { method: 'POST', body: formData })
-            .then(r => r.text())
-            .then(html => {
-                document.open();
-                document.write(html);
-                document.close();
+            fetch('/api/adicionar_musica.php', { method: 'POST', credentials: 'same-origin', body: formData })
+            .then(function(r) { return r.text(); })
+            .then(function(html) {
+                // Extrai mensagem de sucesso/erro do HTML retornado
+                var doc = new DOMParser().parseFromString(html, 'text/html');
+                var msgOk = doc.querySelector('.msg.ok');
+                var msgErr = doc.querySelector('.msg.erro');
+                if (msgOk) {
+                    alert(msgOk.textContent);
+                    // Limpa formulario
+                    document.getElementById('uploadForm').reset();
+                    document.getElementById('t1').innerText = 'Selecionar musica (Sem limite de tamanho)';
+                    document.getElementById('t2').innerText = 'Selecionar imagem';
+                    document.getElementById('progress-container').style.display = 'none';
+                    document.getElementById('progress-bar').style.width = '0%';
+                } else if (msgErr) {
+                    alert(msgErr.textContent);
+                }
+                var btn = document.getElementById('btnSubmit');
+                btn.disabled = false;
+                btn.innerText = 'SUBIR PARA O SUPABASE';
+            })
+            .catch(function(err) {
+                alert('Erro ao salvar no banco: ' + err.message);
+                var btn = document.getElementById('btnSubmit');
+                btn.disabled = false;
+                btn.innerText = 'TENTAR NOVAMENTE';
             });
         }
 
