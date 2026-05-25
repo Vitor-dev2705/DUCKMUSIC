@@ -33,7 +33,6 @@ if ($agora < $_SESSION['tempo_bloqueio']) {
                 $usuario = buscarUm("SELECT id, nome_usuario, senha, nivel_admin FROM usuarios WHERE $campo = ? LIMIT 1", [$login]);
 
                 if ($usuario && password_verify($senha, $usuario['senha'])) {
-                    session_regenerate_id(true);
                     $_SESSION['id_usuario'] = $usuario['id'];
                     $_SESSION['nome_usuario'] = $usuario['nome_usuario'];
                     $_SESSION['nivel_admin'] = $usuario['nivel_admin'];
@@ -42,6 +41,7 @@ if ($agora < $_SESSION['tempo_bloqueio']) {
                     unset($_SESSION['tempo_bloqueio']);
                     unset($_SESSION['csrf_token']);
 
+                    session_write_close();
                     header("Location: /app.php");
                     exit();
                 } else {
