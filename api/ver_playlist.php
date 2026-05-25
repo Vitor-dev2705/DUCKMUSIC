@@ -82,7 +82,10 @@ $total_musicas = count($musicas_locais) + count($musicas_deezer);
                  data-titulo="<?= htmlspecialchars($m['titulo']) ?>"
                  data-artista="<?= htmlspecialchars($m['nome_artista'] ?: 'Desconhecido') ?>"
                  data-capa="<?= htmlspecialchars($capa) ?>">
-                <img src="<?= htmlspecialchars($capa) ?>" class="card-img" alt="<?= htmlspecialchars($m['titulo']) ?>" onerror="this.src='/assets/img/capa-padrao.svg'">
+                <div class="card-img-wrap">
+                    <img src="<?= htmlspecialchars($capa) ?>" class="card-img" alt="<?= htmlspecialchars($m['titulo']) ?>" onerror="this.src='/assets/img/capa-padrao.svg'">
+                    <div class="card-play-btn"><i class="fas fa-play"></i></div>
+                </div>
                 <div class="card-content">
                     <h3><?= htmlspecialchars($m['titulo']) ?></h3>
                     <p><?= htmlspecialchars($m['nome_artista'] ?: 'Desconhecido') ?></p>
@@ -101,7 +104,10 @@ $total_musicas = count($musicas_locais) + count($musicas_deezer);
                  data-titulo="<?= htmlspecialchars($dz['titulo']) ?>"
                  data-artista="<?= htmlspecialchars($dz['artista']) ?>"
                  data-capa="<?= htmlspecialchars($dz['capa_url']) ?>">
-                <img src="<?= htmlspecialchars($dz['capa_url']) ?>" class="card-img" alt="<?= htmlspecialchars($dz['titulo']) ?>" onerror="this.src='/assets/img/capa-padrao.svg'">
+                <div class="card-img-wrap">
+                    <img src="<?= htmlspecialchars($dz['capa_url']) ?>" class="card-img" alt="<?= htmlspecialchars($dz['titulo']) ?>" onerror="this.src='/assets/img/capa-padrao.svg'">
+                    <div class="card-play-btn"><i class="fas fa-play"></i></div>
+                </div>
                 <div class="card-content">
                     <h3><?= htmlspecialchars($dz['titulo']) ?></h3>
                     <p><?= htmlspecialchars($dz['artista']) ?></p>

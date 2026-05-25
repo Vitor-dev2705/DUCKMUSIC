@@ -62,7 +62,10 @@ function renderCard($musica) {
          data-titulo="<?= $titulo ?>"
          data-artista="<?= $artista ?>"
          data-capa="<?= $capa ?>">
-        <img src="<?= $capa ?>" class="card-img" alt="<?= $titulo ?>" onerror="this.src='/assets/img/capa-padrao.svg'">
+        <div class="card-img-wrap">
+            <img src="<?= $capa ?>" class="card-img" alt="<?= $titulo ?>" onerror="this.src='/assets/img/capa-padrao.svg'">
+            <div class="card-play-btn"><i class="fas fa-play"></i></div>
+        </div>
         <div class="card-content">
             <h3><?= $titulo ?></h3>
             <p><?= $artista ?></p>
@@ -97,25 +100,7 @@ $generos_chips = [
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/css/dashboard.css">
-    <style>
-        .search-box { margin-bottom: 20px; position: relative; max-width: 600px; }
-        .search-box input {
-            width: 100%; padding: 15px 20px 15px 50px; border-radius: 30px;
-            border: none; background: #282828; color: white; font-size: 1rem;
-            font-family: 'Poppins', sans-serif; outline: none;
-            transition: background 0.3s;
-        }
-        .search-box input:focus { background: #333; }
-        .search-box input::placeholder { color: #888; }
-        .search-box i { position: absolute; left: 20px; top: 50%; transform: translateY(-50%); color: #b3b3b3; }
-        .genre-chips { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 30px; }
-        .genre-chip {
-            padding: 8px 20px; border-radius: 20px; background: #282828; color: #fff;
-            text-decoration: none; font-size: 0.85rem; font-weight: 500;
-            transition: all 0.3s; border: 1px solid transparent;
-        }
-        .genre-chip:hover, .genre-chip.active { background: #a7fa00; color: #0b0b0b; border-color: #a7fa00; }
-    </style>
+    <!-- Search/genre styles now in dashboard.css -->
 </head>
 <body>
 

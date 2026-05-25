@@ -80,23 +80,7 @@ $minhas_playlists = $playlists;
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/css/dashboard.css">
-    <style>
-        .library-tabs { display: flex; gap: 10px; margin-bottom: 25px; flex-wrap: wrap; }
-        .library-tab {
-            padding: 10px 24px; border-radius: 25px; background: rgba(60,74,99,0.4);
-            color: var(--color-text-muted); cursor: pointer; font-weight: 500;
-            transition: all 0.3s; border: 1px solid transparent; font-size: 0.95rem;
-        }
-        .library-tab:hover { background: rgba(142,68,173,0.2); color: var(--color-text-light); }
-        .library-tab.active { background: var(--color-primary); color: #fff; border-color: var(--color-primary); }
-        .library-content { display: none; }
-        .library-content.active { display: block; }
-        .empty-library-message {
-            text-align: center; padding: 60px 20px; color: var(--color-text-muted);
-            grid-column: 1 / -1;
-        }
-        .empty-library-message i { font-size: 3rem; margin-bottom: 15px; display: block; }
-    </style>
+    <!-- Library tab styles now in dashboard.css -->
 </head>
 <body>
 
@@ -149,7 +133,7 @@ $minhas_playlists = $playlists;
 
         <!-- FAVORITAS -->
         <div class="library-content active" id="favoritas">
-            <h2 class="section-title"><i class="fas fa-heart"></i> Suas favoritas</h2>
+            <h2 class="section-title">Suas favoritas</h2>
             <div class="cards-container">
                 <?php
                 // Favoritas locais
@@ -163,7 +147,10 @@ $minhas_playlists = $playlists;
                          data-titulo="<?= htmlspecialchars($m['titulo']) ?>"
                          data-artista="<?= htmlspecialchars($m['nome_artista'] ?: 'Desconhecido') ?>"
                          data-capa="<?= htmlspecialchars($capa) ?>">
-                        <img src="<?= htmlspecialchars($capa) ?>" class="card-img" onerror="this.src='/assets/img/capa-padrao.svg'">
+                        <div class="card-img-wrap">
+                            <img src="<?= htmlspecialchars($capa) ?>" class="card-img" onerror="this.src='/assets/img/capa-padrao.svg'">
+                            <div class="card-play-btn"><i class="fas fa-play"></i></div>
+                        </div>
                         <div class="card-content">
                             <h3><?= htmlspecialchars($m['titulo']) ?></h3>
                             <p><?= htmlspecialchars($m['nome_artista'] ?: 'Desconhecido') ?></p>
@@ -183,7 +170,10 @@ $minhas_playlists = $playlists;
                          data-titulo="<?= htmlspecialchars($dz['titulo']) ?>"
                          data-artista="<?= htmlspecialchars($dz['artista']) ?>"
                          data-capa="<?= htmlspecialchars($dz['capa_url']) ?>">
-                        <img src="<?= htmlspecialchars($dz['capa_url']) ?>" class="card-img" onerror="this.src='/assets/img/capa-padrao.svg'">
+                        <div class="card-img-wrap">
+                            <img src="<?= htmlspecialchars($dz['capa_url']) ?>" class="card-img" onerror="this.src='/assets/img/capa-padrao.svg'">
+                            <div class="card-play-btn"><i class="fas fa-play"></i></div>
+                        </div>
                         <div class="card-content">
                             <h3><?= htmlspecialchars($dz['titulo']) ?></h3>
                             <p><?= htmlspecialchars($dz['artista']) ?></p>
@@ -211,8 +201,8 @@ $minhas_playlists = $playlists;
             <div class="cards-container">
                 <?php foreach ($playlists as $pl): ?>
                     <a href="/api/ver_playlist.php?id=<?= $pl['id'] ?>" class="card" style="text-decoration:none;">
-                        <div style="width:100%;height:200px;background:linear-gradient(135deg, var(--color-primary), var(--color-secondary));display:flex;align-items:center;justify-content:center;">
-                            <i class="fas fa-music" style="font-size:3rem;color:#fff;"></i>
+                        <div class="card-img-wrap" style="background:linear-gradient(135deg, #450af5, #8b5cf6);display:flex;align-items:center;justify-content:center;">
+                            <i class="fas fa-music" style="font-size:2.5rem;color:#fff;"></i>
                         </div>
                         <div class="card-content">
                             <h3><?= htmlspecialchars($pl['nome']) ?></h3>
@@ -232,7 +222,7 @@ $minhas_playlists = $playlists;
 
         <!-- UPLOADS -->
         <div class="library-content" id="minhas-musicas">
-            <h2 class="section-title"><i class="fas fa-cloud-upload-alt"></i> Seus uploads</h2>
+            <h2 class="section-title">Seus uploads</h2>
             <div class="cards-container">
                 <?php foreach ($minhas_musicas as $m):
                     $capa = resolverMidia($m['caminho_capa'], '/assets/img/capa-padrao.svg');
@@ -245,7 +235,10 @@ $minhas_playlists = $playlists;
                          data-titulo="<?= htmlspecialchars($m['titulo']) ?>"
                          data-artista="<?= htmlspecialchars($m['nome_artista'] ?: 'Desconhecido') ?>"
                          data-capa="<?= htmlspecialchars($capa) ?>">
-                        <img src="<?= htmlspecialchars($capa) ?>" class="card-img" onerror="this.src='/assets/img/capa-padrao.svg'">
+                        <div class="card-img-wrap">
+                            <img src="<?= htmlspecialchars($capa) ?>" class="card-img" onerror="this.src='/assets/img/capa-padrao.svg'">
+                            <div class="card-play-btn"><i class="fas fa-play"></i></div>
+                        </div>
                         <div class="card-content">
                             <h3><?= htmlspecialchars($m['titulo']) ?></h3>
                             <p><?= htmlspecialchars($m['nome_artista'] ?: 'Desconhecido') ?></p>

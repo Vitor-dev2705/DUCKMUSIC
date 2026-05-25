@@ -32,35 +32,15 @@ $minhas_playlists = buscarTodos("SELECT id, nome FROM playlists WHERE id_usuario
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DuckMusic</title>
-    <meta name="theme-color" content="#1a1a2e">
+    <meta name="theme-color" content="#121212">
     <meta name="description" content="DuckMusic - Sua plataforma de streaming de musica">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/css/dashboard.css">
-    <link rel="stylesheet" href="/css/biblioteca.css">
-    <link rel="stylesheet" href="/css/playlist.css">
     <style>
-        #content { min-height: calc(100vh - 180px); flex: 1; margin-left: 280px; padding: 2rem; padding-bottom: 12rem; }
         .player { display: none; }
-        .loading-spinner {
-            display: flex; align-items: center; justify-content: center;
-            min-height: 300px; color: var(--color-text-muted);
-        }
-        .loading-spinner i { font-size: 2rem; animation: spin 1s linear infinite; }
-        @keyframes spin { to { transform: rotate(360deg); } }
         .nav-link { cursor: pointer; }
         #progress-bar { cursor: pointer; }
-        /* Shuffle/Repeat active */
-        #btn-shuffle.active, #btn-repeat.active { color: var(--color-primary, #8e44ad); }
-        #btn-repeat.repeat-one::after { content: '1'; font-size: 0.6rem; position: absolute; margin-top: -8px; margin-left: 2px; font-weight: bold; color: var(--color-primary, #8e44ad); }
-        #btn-repeat { position: relative; }
-        /* Explorar search inline */
-        .search-box { margin-bottom: 30px; position: relative; max-width: 600px; }
-        .search-box input { width: 100%; padding: 15px 50px; border-radius: 30px; border: none; background: #282828; color: white; font-size: 1rem; }
-        .search-box i { position: absolute; left: 20px; top: 18px; color: #b3b3b3; }
-        /* Responsive fix for SPA content */
-        @media (max-width: 992px) { #content { margin-left: 80px; padding: 1rem; } }
-        @media (max-width: 576px) { #content { margin-left: 0; padding: 0.8rem; padding-bottom: 14rem; } }
     </style>
 </head>
 <body>
@@ -98,29 +78,37 @@ $minhas_playlists = buscarTodos("SELECT id, nome FROM playlists WHERE id_usuario
     <div class="loading-spinner"><i class="fas fa-spinner"></i></div>
 </div>
 
+<!-- Player: Spotify 3-column layout -->
 <div class="player" id="player">
-    <div class="player-top">
-        <div class="player-song">
-            <img src="" class="player-song-img" id="player-img" alt="Capa">
-            <div class="player-song-details">
-                <h4 id="player-title">Selecione uma musica</h4>
-                <p id="player-artist">DuckMusic</p>
-            </div>
+    <!-- Left: Song info -->
+    <div class="player-left">
+        <img src="" class="player-song-img" id="player-img" alt="Capa">
+        <div class="player-song-details">
+            <h4 id="player-title">Selecione uma musica</h4>
+            <p id="player-artist">DuckMusic</p>
         </div>
         <button class="player-fav-btn" id="player-fav-btn" data-id=""><i class="far fa-heart"></i></button>
     </div>
-    <div class="player-controls">
-        <button id="btn-shuffle" title="Aleatório"><i class="fas fa-shuffle"></i></button>
-        <button id="btn-prev" title="Anterior"><i class="fas fa-backward-step"></i></button>
-        <button id="btn-play" title="Tocar"><i class="fas fa-play"></i></button>
-        <button id="btn-pause" title="Pausar" style="display:none;"><i class="fas fa-pause"></i></button>
-        <button id="btn-next" title="Proxima"><i class="fas fa-forward-step"></i></button>
-        <button id="btn-repeat" title="Repetir"><i class="fas fa-repeat"></i></button>
+
+    <!-- Center: Controls + Progress -->
+    <div class="player-center">
+        <div class="player-controls">
+            <button id="btn-shuffle" title="Aleatorio"><i class="fas fa-shuffle"></i></button>
+            <button id="btn-prev" title="Anterior"><i class="fas fa-backward-step"></i></button>
+            <button id="btn-play" title="Tocar"><i class="fas fa-play"></i></button>
+            <button id="btn-pause" title="Pausar" style="display:none;"><i class="fas fa-pause"></i></button>
+            <button id="btn-next" title="Proxima"><i class="fas fa-forward-step"></i></button>
+            <button id="btn-repeat" title="Repetir"><i class="fas fa-repeat"></i></button>
+        </div>
+        <div class="progress-container">
+            <span class="time" id="current-time">0:00</span>
+            <div class="progress-bar" id="progress-bar"><div class="progress" id="progress"></div></div>
+            <span class="time" id="duration">0:00</span>
+        </div>
     </div>
-    <div class="progress-container">
-        <span class="time" id="current-time">0:00</span>
-        <div class="progress-bar" id="progress-bar"><div class="progress" id="progress"></div></div>
-        <span class="time" id="duration">0:00</span>
+
+    <!-- Right: Volume -->
+    <div class="player-right">
         <div class="volume-controls">
             <i class="fas fa-volume-high" id="volume-icon"></i>
             <input type="range" id="volume-slider" min="0" max="1" step="0.01" value="0.8">

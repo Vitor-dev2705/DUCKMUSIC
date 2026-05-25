@@ -53,7 +53,10 @@ function renderCard($musica) {
          data-titulo="<?= $titulo ?>"
          data-artista="<?= $artista ?>"
          data-capa="<?= $capa ?>">
-        <img src="<?= $capa ?>" class="card-img" alt="<?= $titulo ?>" onerror="this.src='/assets/img/capa-padrao.svg'">
+        <div class="card-img-wrap">
+            <img src="<?= $capa ?>" class="card-img" alt="<?= $titulo ?>" onerror="this.src='/assets/img/capa-padrao.svg'">
+            <div class="card-play-btn"><i class="fas fa-play"></i></div>
+        </div>
         <div class="card-content">
             <h3><?= $titulo ?></h3>
             <p><?= $artista ?></p>
@@ -134,25 +137,25 @@ function renderCard($musica) {
             </div>
         </div>
 
-        <h2 class="section-title"><i class="fas fa-fire"></i> Em Alta</h2>
+        <h2 class="section-title">Em Alta</h2>
         <div class="cards-container">
             <?php foreach ($chart as $m): renderCard($m); endforeach; ?>
             <?php if (empty($chart)): ?><p>Nenhuma musica encontrada.</p><?php endif; ?>
         </div>
 
-        <h2 class="section-title"><i class="fas fa-bolt"></i> Funk</h2>
+        <h2 class="section-title">Funk</h2>
         <div class="cards-container">
             <?php foreach ($funk as $m): renderCard($m); endforeach; ?>
             <?php if (empty($funk)): ?><p>Carregando...</p><?php endif; ?>
         </div>
 
-        <h2 class="section-title"><i class="fas fa-microphone-lines"></i> Rap</h2>
+        <h2 class="section-title">Rap</h2>
         <div class="cards-container">
             <?php foreach ($rap as $m): renderCard($m); endforeach; ?>
             <?php if (empty($rap)): ?><p>Carregando...</p><?php endif; ?>
         </div>
 
-        <h2 class="section-title"><i class="fas fa-guitar"></i> Sertanejo</h2>
+        <h2 class="section-title">Sertanejo</h2>
         <div class="cards-container">
             <?php foreach ($sertanejo as $m): renderCard($m); endforeach; ?>
             <?php if (empty($sertanejo)): ?><p>Carregando...</p><?php endif; ?>
