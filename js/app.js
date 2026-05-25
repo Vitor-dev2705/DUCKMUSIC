@@ -149,7 +149,7 @@
     }
 
     function updateActiveNav(url) {
-        var links = document.querySelectorAll('.sidebar .menu-item');
+        var links = document.querySelectorAll('.sidebar .menu-item, .mobile-nav-item');
         for (var i = 0; i < links.length; i++) {
             var href = links[i].getAttribute('href') || '';
             links[i].classList.toggle('active', url.indexOf(href) !== -1 && href.length > 1);

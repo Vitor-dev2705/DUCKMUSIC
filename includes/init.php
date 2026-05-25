@@ -6,10 +6,13 @@ require_once __DIR__ . '/session_handler.php';
 $handler = new DbSessionHandler($db);
 session_set_save_handler($handler, true);
 
+$isHttps = isset($_SERVER['HTTPS']) ||
+           (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https');
+
 session_set_cookie_params([
     'lifetime' => 0,
     'path'     => '/',
-    'secure'   => isset($_SERVER['HTTPS']),
+    'secure'   => $isHttps,
     'httponly'  => true,
     'samesite'  => 'Lax'
 ]);

@@ -141,6 +141,22 @@ $minhas_playlists = buscarTodos("SELECT id, nome FROM playlists WHERE id_usuario
     </div>
 </div>
 
+<!-- Mobile Bottom Navigation -->
+<nav class="mobile-nav" id="mobile-nav">
+    <a href="/paginas/dashboard.php" class="mobile-nav-item nav-link active" data-page="dashboard">
+        <i class="fas fa-home"></i>
+        <span>Inicio</span>
+    </a>
+    <a href="/paginas/explorar.php" class="mobile-nav-item nav-link" data-page="explorar">
+        <i class="fas fa-search"></i>
+        <span>Explorar</span>
+    </a>
+    <a href="/paginas/biblioteca.php" class="mobile-nav-item nav-link" data-page="biblioteca">
+        <i class="fas fa-book"></i>
+        <span>Biblioteca</span>
+    </a>
+</nav>
+
 <div id="toast" class="toast"></div>
 
 <script>
