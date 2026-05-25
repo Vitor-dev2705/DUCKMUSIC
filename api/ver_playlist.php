@@ -117,9 +117,10 @@ $total_musicas = count($musicas_locais) + count($musicas_deezer);
         <?php endforeach; ?>
 
         <?php if ($total_musicas === 0): ?>
-            <div style="text-align:center; padding:40px; color:var(--color-text-muted); grid-column: 1/-1;">
-                <i class="fas fa-music" style="font-size:3rem; margin-bottom:15px; display:block;"></i>
-                <p>Playlist vazia. Adicione musicas pelo botao <i class="fas fa-plus"></i> nos cards.</p>
+            <div class="empty-library-message">
+                <i class="fas fa-music"></i>
+                <p>Nenhuma musica adicionada ainda.</p>
+                <p style="font-size:0.85rem; margin-top:8px; color:var(--sp-text-subdued);">Explore e adicione musicas pelo botao <i class="fas fa-plus"></i> nos cards.</p>
             </div>
         <?php endif; ?>
     </div>
