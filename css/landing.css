@@ -1,0 +1,331 @@
+:root {
+    --primary: #a7fa00;
+    --primary-hover: #8ed400;
+    --bg-dark: #0b0b0b;
+    --bg-card: #181818;
+    --bg-card-hover: #282828;
+    --text-main: #ffffff;
+    --text-muted: #b3b3b3;
+    --accent-red: #ff6b6b;
+    --border-radius: 12px;
+    --nav-height: 80px;
+}
+
+/* Reset */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: var(--bg-dark);
+    color: var(--text-main);
+    overflow-x: hidden;
+    scroll-behavior: smooth;
+}
+
+/* Utilidades */
+.container { max-width: 1200px; margin: 0 auto; padding: 0 5%; }
+
+.btn {
+    padding: 0.8rem 1.8rem;
+    border-radius: 50px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: inline-block;
+    cursor: pointer;
+    border: none;
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.95rem;
+}
+
+/* =========================================
+   NAVBAR
+   ========================================= */
+.navbar {
+    height: var(--nav-height);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 5%;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(12px);
+    position: fixed;
+    width: 100%;
+    top: 0;
+    z-index: 1000;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.logo {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    white-space: nowrap;
+}
+
+.auth-group {
+    display: flex;
+    gap: 0.8rem;
+    align-items: center;
+}
+
+.btn-login {
+    color: var(--text-main);
+    border: 1px solid rgba(255,255,255,0.3);
+    background: transparent;
+}
+.btn-login:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+}
+
+.btn-register {
+    background: var(--primary);
+    color: var(--bg-dark);
+}
+.btn-register:hover {
+    transform: scale(1.05);
+    background: var(--primary-hover);
+}
+
+.btn-donate {
+    background: var(--accent-red);
+    color: white;
+}
+.btn-donate:hover {
+    background: #ff5252;
+    transform: scale(1.05);
+}
+
+/* =========================================
+   HERO
+   ========================================= */
+.hero {
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    background: linear-gradient(rgba(0,0,0,0.6), var(--bg-dark)),
+                url('https://images.unsplash.com/photo-1493225255756-d9584f8606e9?auto=format&fit=crop&w=1350&q=80');
+    background-size: cover;
+    background-position: center;
+}
+
+.hero-content h1 {
+    font-size: clamp(2.5rem, 8vw, 5rem);
+    line-height: 1.1;
+    margin-bottom: 1.5rem;
+    text-transform: uppercase;
+    letter-spacing: -2px;
+}
+
+.hero-content p {
+    font-size: 1.2rem;
+    color: var(--text-muted);
+    max-width: 600px;
+    margin: 0 auto 2.5rem;
+}
+
+.hero-btns {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+/* =========================================
+   FEATURES
+   ========================================= */
+.features {
+    padding: 100px 0;
+    background: var(--bg-dark);
+}
+
+.section-title {
+    text-align: center;
+    font-size: 2.5rem;
+    margin-bottom: 3rem;
+}
+.section-title span {
+    color: var(--primary);
+}
+
+.features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+}
+
+.feature-card {
+    background: var(--bg-card);
+    padding: 3rem 2rem;
+    border-radius: var(--border-radius);
+    text-align: center;
+    transition: all 0.3s ease;
+    border: 1px solid transparent;
+}
+
+.feature-card:hover {
+    background: var(--bg-card-hover);
+    transform: translateY(-10px);
+    border-color: rgba(167, 250, 0, 0.2);
+}
+
+.feature-card i {
+    font-size: 3rem;
+    color: var(--primary);
+    margin-bottom: 1.5rem;
+    display: block;
+}
+
+.feature-card h3 {
+    margin-bottom: 0.8rem;
+}
+
+/* =========================================
+   DEPOIMENTOS
+   ========================================= */
+.testimonials {
+    padding: 100px 0;
+    background: #0f0f0f;
+}
+
+.testimonial-track {
+    display: flex;
+    gap: 2rem;
+    overflow-x: auto;
+    padding: 20px 0;
+    scrollbar-width: none;
+}
+.testimonial-track::-webkit-scrollbar { display: none; }
+
+.testi-card {
+    min-width: 320px;
+    background: var(--bg-card);
+    padding: 2rem;
+    border-radius: var(--border-radius);
+    position: relative;
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 1rem;
+}
+.user-info img {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    border: 2px solid var(--primary);
+}
+.stars {
+    color: #f1c40f;
+    font-size: 0.8rem;
+    margin-top: 5px;
+}
+
+/* =========================================
+   FOOTER
+   ========================================= */
+.footer {
+    padding: 4rem 0;
+    border-top: 1px solid rgba(255,255,255,0.05);
+    text-align: center;
+}
+
+.social-links {
+    margin-bottom: 2rem;
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+}
+.social-links a {
+    color: var(--text-muted);
+    font-size: 1.5rem;
+    transition: 0.3s;
+}
+.social-links a:hover {
+    color: var(--primary);
+    transform: translateY(-3px);
+}
+
+/* =========================================
+   RESPONSIVO
+   ========================================= */
+@media (max-width: 768px) {
+    .navbar {
+        height: 64px;
+        padding: 0 16px;
+    }
+
+    .logo {
+        font-size: 1.2rem;
+    }
+
+    .auth-group {
+        gap: 0.5rem;
+    }
+
+    .auth-group .btn {
+        padding: 0.5rem 1rem;
+        font-size: 0.78rem;
+    }
+
+    .hero-content h1 {
+        font-size: 2.5rem;
+    }
+
+    .hero-content p {
+        font-size: 1rem;
+        padding: 0 10px;
+    }
+
+    .hero-btns {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .section-title {
+        font-size: 1.8rem;
+    }
+
+    .features {
+        padding: 60px 0;
+    }
+
+    .features-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .feature-card {
+        padding: 2rem 1.5rem;
+    }
+
+    .testimonials {
+        padding: 60px 0;
+    }
+
+    .testi-card {
+        min-width: 280px;
+    }
+}
+
+@media (max-width: 400px) {
+    .auth-group .btn-donate {
+        display: none;
+    }
+
+    .auth-group .btn {
+        padding: 0.45rem 0.8rem;
+        font-size: 0.75rem;
+    }
+
+    .logo {
+        font-size: 1.1rem;
+    }
+}

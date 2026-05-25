@@ -53,10 +53,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         if (empty($erro)) {
-            $existente = buscarUm("SELECT id FROM usuarios WHERE nome_usuario = ? OR email = ?",
-                                  [$dados['nome_usuario'], $dados['email']]);
+            // Verifica username e email separadamente para erro mais claro
+            $userExiste = buscarUm("SELECT id FROM usuarios WHERE nome_usuario = ?", [$dados['nome_usuario']]);
+            $emailExiste = buscarUm("SELECT id FROM usuarios WHERE email = ?", [$dados['email']]);
 
-            if (!$existente) {
+            if ($userExiste && $emailExiste) {
+                $erro = "Nome de usuario e e-mail ja estao em uso.";
+            } elseif ($userExiste) {
+                $erro = "Nome de usuario ja esta em uso. Escolha outro.";
+            } elseif ($emailExiste) {
+                $erro = "E-mail ja esta cadastrado. Use outro ou faca login.";
+            }
+
+            if (empty($erro)) {
                 $senha_hash = password_hash($senha, PASSWORD_DEFAULT);
 
                 try {
@@ -76,8 +85,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 } catch (Exception $e) {
                     $erro = "Erro ao criar conta. Tente novamente.";
                 }
-            } else {
-                $erro = "Nome de usuario ou e-mail ja esta em uso.";
             }
         }
     }

@@ -656,7 +656,6 @@
         closePlaylistDropdown();
 
         var card = btn.closest('.card[data-id]');
-        // Se nao tem card (ex: player), usa overrideMeta
         var trackId, meta;
         if (card) {
             trackId = card.dataset.id;
@@ -672,44 +671,127 @@
         } else {
             return;
         }
-        // Pega playlists da sidebar
-        var plItems = document.querySelectorAll('#sidebar-playlists .playlist-item');
-        if (plItems.length === 0) {
-            toast('Crie uma playlist primeiro');
-            return;
-        }
 
+        // Overlay escuro
+        var overlay = document.createElement('div');
+        overlay.className = 'playlist-dropdown-overlay';
+        overlay.addEventListener('click', function(ev) {
+            if (ev.target === overlay) closePlaylistDropdown();
+        });
+
+        // Popup centralizado
         var dd = document.createElement('div');
         dd.className = 'playlist-dropdown';
-        dd.innerHTML = '<div class="playlist-dropdown-header"><i class="fas fa-plus"></i> Adicionar a playlist</div>';
+        dd.innerHTML = '<div class="playlist-dropdown-header"><span>Adicionar a playlist</span><button class="playlist-dropdown-close"><i class="fas fa-times"></i></button></div>';
+        dd.querySelector('.playlist-dropdown-close').addEventListener('click', closePlaylistDropdown);
 
-        for (var i = 0; i < plItems.length; i++) {
-            var href = plItems[i].getAttribute('href') || '';
-            var match = href.match(/id=(\d+)/);
-            if (!match) continue;
-            var plId = match[1];
-            var plName = plItems[i].textContent.trim();
+        // Lista de playlists
+        var listContainer = document.createElement('div');
+        listContainer.className = 'playlist-dropdown-list';
 
-            var item = document.createElement('div');
-            item.className = 'playlist-dropdown-item';
-            item.setAttribute('data-playlist-id', plId);
-            item.innerHTML = '<i class="fas fa-music"></i> ' + plName;
-            item.addEventListener('click', (function(pid, m) {
-                return function() {
-                    addToPlaylist(pid, trackId, m);
-                    closePlaylistDropdown();
-                };
-            })(plId, meta));
-            dd.appendChild(item);
+        var plItems = document.querySelectorAll('#sidebar-playlists .playlist-item');
+        if (plItems.length === 0) {
+            var empty = document.createElement('div');
+            empty.className = 'playlist-dropdown-empty';
+            empty.textContent = 'Nenhuma playlist criada';
+            listContainer.appendChild(empty);
+        } else {
+            for (var i = 0; i < plItems.length; i++) {
+                var href = plItems[i].getAttribute('href') || '';
+                var match = href.match(/id=(\d+)/);
+                if (!match) continue;
+                var plId = match[1];
+                var plName = plItems[i].textContent.trim();
+                var item = document.createElement('div');
+                item.className = 'playlist-dropdown-item';
+                item.setAttribute('data-playlist-id', plId);
+                item.innerHTML = '<i class="fas fa-music"></i><span>' + plName + '</span>';
+                item.addEventListener('click', (function(pid, m) {
+                    return function() {
+                        addToPlaylist(pid, trackId, m);
+                        closePlaylistDropdown();
+                    };
+                })(plId, meta));
+                listContainer.appendChild(item);
+            }
+        }
+        dd.appendChild(listContainer);
+
+        // Secao criar nova playlist
+        var createSection = document.createElement('div');
+        createSection.className = 'playlist-dropdown-create';
+        createSection.innerHTML =
+            '<button class="playlist-dropdown-create-btn"><i class="fas fa-plus"></i><span>Criar nova playlist</span></button>' +
+            '<div class="playlist-dropdown-create-form" style="display:none;">' +
+            '<input type="text" class="playlist-dropdown-input" placeholder="Nome da playlist" maxlength="100">' +
+            '<button class="playlist-dropdown-save-btn" title="Criar"><i class="fas fa-check"></i></button>' +
+            '</div>';
+        dd.appendChild(createSection);
+
+        var createBtn = createSection.querySelector('.playlist-dropdown-create-btn');
+        var createForm = createSection.querySelector('.playlist-dropdown-create-form');
+        var createInput = createSection.querySelector('.playlist-dropdown-input');
+        var saveBtn = createSection.querySelector('.playlist-dropdown-save-btn');
+
+        createBtn.addEventListener('click', function() {
+            createBtn.style.display = 'none';
+            createForm.style.display = 'flex';
+            createInput.focus();
+        });
+
+        function submitNewPlaylist() {
+            var nome = createInput.value.trim();
+            if (!nome) return;
+            saveBtn.disabled = true;
+            createInput.disabled = true;
+
+            var fd = new FormData();
+            fd.append('playlist_nome', nome);
+
+            fetch('/api/criar_playlist.php', { method: 'POST', credentials: 'same-origin', body: fd })
+                .then(function(r) { return r.text(); })
+                .then(function(raw) {
+                    var clean = raw.replace(/^\xEF\xBB\xBF/, '').trim();
+                    var idx = clean.indexOf('{');
+                    var data = JSON.parse(clean.substring(idx >= 0 ? idx : 0));
+
+                    if (data.status === 'success') {
+                        toast('Playlist criada!');
+                        // Adiciona na sidebar
+                        var sb = document.getElementById('sidebar-playlists');
+                        if (sb) {
+                            var aviso = sb.querySelector('.sem-playlists-aviso');
+                            if (aviso) aviso.remove();
+                            var a = document.createElement('a');
+                            a.href = '/api/ver_playlist.php?id=' + data.playlist_id;
+                            a.className = 'playlist-item nav-link';
+                            a.innerHTML = '<i class="fas fa-music"></i><span>' + nome + '</span>';
+                            sb.appendChild(a);
+                        }
+                        // Adiciona a musica automaticamente na nova playlist
+                        addToPlaylist(data.playlist_id, trackId, meta);
+                        closePlaylistDropdown();
+                    } else {
+                        toast(data.message || 'Erro ao criar playlist');
+                        saveBtn.disabled = false;
+                        createInput.disabled = false;
+                    }
+                })
+                .catch(function() {
+                    toast('Erro de comunicacao');
+                    saveBtn.disabled = false;
+                    createInput.disabled = false;
+                });
         }
 
-        // Posiciona proximo ao botao
-        var rect = btn.getBoundingClientRect();
-        dd.style.top = Math.max(10, rect.top - 10) + 'px';
-        dd.style.left = Math.min(rect.left, window.innerWidth - 240) + 'px';
+        saveBtn.addEventListener('click', submitNewPlaylist);
+        createInput.addEventListener('keydown', function(ev) {
+            if (ev.key === 'Enter') { ev.preventDefault(); submitNewPlaylist(); }
+        });
 
-        document.body.appendChild(dd);
-        activeDropdown = dd;
+        overlay.appendChild(dd);
+        document.body.appendChild(overlay);
+        activeDropdown = overlay;
     }
 
     function addToPlaylist(playlistId, trackId, meta) {
@@ -745,7 +827,7 @@
             var target = e.target;
 
             // --- Fechar dropdown de playlist ---
-            if (activeDropdown && !target.closest('.playlist-dropdown') && !target.closest('.btn-add-playlist') && !target.closest('#player-add-playlist-btn')) {
+            if (activeDropdown && !target.closest('.playlist-dropdown-overlay') && !target.closest('.btn-add-playlist') && !target.closest('#player-add-playlist-btn')) {
                 closePlaylistDropdown();
             }
 

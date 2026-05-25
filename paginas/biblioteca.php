@@ -121,7 +121,7 @@ $minhas_playlists = $playlists;
             </div>
             <div class="user-menu">
                 <a href="configuracoes.php" class="btn" title="Configuracoes"><i class="fas fa-cog"></i></a>
-                <a href="logout.php" class="btn" title="Sair"><i class="fas fa-sign-out-alt"></i></a>
+                <a href="/auth/logout.php" class="btn" title="Sair"><i class="fas fa-sign-out-alt"></i></a>
             </div>
         </div>
 
