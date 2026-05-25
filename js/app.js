@@ -128,6 +128,7 @@
                     history.pushState({ page: url }, '', url);
                 }
                 curPage = url;
+                try { sessionStorage.setItem('duckPage', url); } catch(e) {}
 
                 updateActiveNav(url);
                 buildQueue();
@@ -651,20 +652,26 @@
         }
     }
 
-    function showPlaylistDropdown(btn) {
+    function showPlaylistDropdown(btn, overrideMeta) {
         closePlaylistDropdown();
 
-        var card = btn.closest('[data-id]');
-        if (!card) return;
-
-        var trackId = card.dataset.id;
-        var meta = {
-            titulo: card.dataset.titulo || '',
-            artista: card.dataset.artista || '',
-            capa: card.dataset.capa || '',
-            audio: card.dataset.audio || ''
-        };
-
+        var card = btn.closest('.card[data-id]');
+        // Se nao tem card (ex: player), usa overrideMeta
+        var trackId, meta;
+        if (card) {
+            trackId = card.dataset.id;
+            meta = {
+                titulo: card.dataset.titulo || '',
+                artista: card.dataset.artista || '',
+                capa: card.dataset.capa || '',
+                audio: card.dataset.audio || ''
+            };
+        } else if (overrideMeta) {
+            trackId = overrideMeta.id;
+            meta = overrideMeta;
+        } else {
+            return;
+        }
         // Pega playlists da sidebar
         var plItems = document.querySelectorAll('#sidebar-playlists .playlist-item');
         if (plItems.length === 0) {
@@ -738,16 +745,36 @@
             var target = e.target;
 
             // --- Fechar dropdown de playlist ---
-            if (activeDropdown && !target.closest('.playlist-dropdown') && !target.closest('.btn-add-playlist')) {
+            if (activeDropdown && !target.closest('.playlist-dropdown') && !target.closest('.btn-add-playlist') && !target.closest('#player-add-playlist-btn')) {
                 closePlaylistDropdown();
             }
 
-            // --- Botao adicionar a playlist ---
+            // --- Botao adicionar a playlist (cards) ---
             var btnAddPl = target.closest('.btn-add-playlist');
             if (btnAddPl) {
                 e.preventDefault();
                 e.stopPropagation();
                 showPlaylistDropdown(btnAddPl);
+                return;
+            }
+
+            // --- Botao adicionar a playlist (player) ---
+            var btnPlayerAdd = target.closest('#player-add-playlist-btn');
+            if (btnPlayerAdd) {
+                e.preventDefault();
+                e.stopPropagation();
+                if (curIdx < 0 || !queue[curIdx]) {
+                    toast('Nenhuma musica tocando');
+                    return;
+                }
+                var s = queue[curIdx];
+                showPlaylistDropdown(btnPlayerAdd, {
+                    id: s.id,
+                    titulo: s.titulo,
+                    artista: s.artista,
+                    capa: s.capa,
+                    audio: s.audio
+                });
                 return;
             }
 
@@ -852,8 +879,10 @@
         initGlobalEvents();
         restoreState();
 
-        // Carrega pagina inicial
-        navigateTo('/paginas/dashboard.php');
+        // Restaura pagina atual ou carrega dashboard
+        var savedPage = null;
+        try { savedPage = sessionStorage.getItem('duckPage'); } catch(e) {}
+        navigateTo(savedPage || '/paginas/dashboard.php');
     }
 
     if (document.readyState === 'loading') {

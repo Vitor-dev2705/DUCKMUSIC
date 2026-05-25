@@ -351,7 +351,7 @@ function closePlaylistDropdown() {
 
 function showPlaylistDropdown(btn) {
     closePlaylistDropdown();
-    const card = btn.closest('[data-id]');
+    const card = btn.closest('.card[data-id]');
     if (!card) return;
 
     const trackId = card.dataset.id;

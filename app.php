@@ -88,6 +88,7 @@ $minhas_playlists = buscarTodos("SELECT id, nome FROM playlists WHERE id_usuario
             <p id="player-artist">DuckMusic</p>
         </div>
         <button class="player-fav-btn" id="player-fav-btn" data-id=""><i class="far fa-heart"></i></button>
+        <button class="player-add-btn" id="player-add-playlist-btn" title="Adicionar a playlist"><i class="fas fa-plus"></i></button>
     </div>
 
     <!-- Center: Controls + Progress -->
