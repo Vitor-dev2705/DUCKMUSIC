@@ -1601,10 +1601,12 @@ body {
     bottom: 0;
     left: 0;
     right: 0;
-    background: var(--sp-bg-elevated);
-    border-top: 1px solid rgba(255,255,255,0.1);
+    background: linear-gradient(180deg, rgba(18,18,18,0.85) 0%, #121212 100%);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-top: none;
     z-index: 999;
-    padding: 6px 0 env(safe-area-inset-bottom, 6px);
+    padding: 8px 0 env(safe-area-inset-bottom, 8px);
     justify-content: space-around;
     align-items: center;
 }
@@ -1613,21 +1615,22 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 2px;
+    gap: 3px;
     text-decoration: none;
-    color: var(--sp-text-secondary);
-    font-size: 0.65rem;
-    padding: 4px 12px;
+    color: rgba(255,255,255,0.5);
+    font-size: 0.6rem;
+    padding: 4px 16px;
     transition: color 0.15s;
-    font-weight: 500;
+    font-weight: 600;
+    letter-spacing: 0.02em;
 }
 
 .mobile-nav-item i {
-    font-size: 1.25rem;
+    font-size: 1.3rem;
 }
 
 .mobile-nav-item.active {
-    color: var(--sp-text);
+    color: #fff;
 }
 
 
@@ -1786,30 +1789,43 @@ body {
 
     /* ======= HEADER MOBILE — Spotify style ======= */
     .header {
+        flex-direction: row;
         flex-wrap: nowrap;
+        align-items: center;
         gap: 10px;
-        margin-bottom: 16px;
+        margin-bottom: 4px;
         padding: 0;
     }
 
     .header-left {
         gap: 10px;
+        align-items: center;
+        flex: 1;
+        min-width: 0;
     }
 
     .header-left .user-avatar {
-        width: 36px !important;
-        height: 36px !important;
+        width: 34px !important;
+        height: 34px !important;
         flex-shrink: 0;
     }
 
     .header-left .avatar-placeholder {
-        width: 36px !important;
-        height: 36px !important;
+        width: 34px !important;
+        height: 34px !important;
         font-size: 0.85rem !important;
+        background: #1db954;
+        color: #000;
+        font-weight: 700;
+    }
+
+    .header-greeting {
+        min-width: 0;
     }
 
     .header h1 {
-        font-size: 1.15rem;
+        font-size: 1.25rem;
+        font-weight: 700;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -1820,7 +1836,7 @@ body {
     }
 
     .user-menu {
-        gap: 8px;
+        gap: 6px;
         flex-shrink: 0;
     }
 
@@ -1832,9 +1848,10 @@ body {
 
     /* ======= SECTIONS ======= */
     .section-title {
-        font-size: 1.2rem;
+        font-size: 1.1rem;
         font-weight: 700;
-        margin: 20px 0 10px;
+        margin: 24px 0 12px;
+        letter-spacing: -0.01em;
     }
 
     .section-title::after {
@@ -1860,24 +1877,24 @@ body {
         max-width: none !important;
         padding: 0;
         gap: 0;
-        background: var(--sp-bg-highlight);
-        border-radius: 6px;
+        background: rgba(255,255,255,0.07);
+        border-radius: 4px;
         overflow: hidden;
-        height: 58px;
+        height: 56px;
     }
 
-    .quick-access .card:hover {
-        background: var(--sp-bg-tinted);
+    .quick-access .card:active {
+        background: rgba(255,255,255,0.12);
     }
 
     .quick-access .card-img-wrap {
-        width: 58px;
-        height: 58px;
-        min-width: 58px;
+        width: 56px;
+        height: 56px;
+        min-width: 56px;
         margin: 0;
-        border-radius: 6px 0 0 6px;
+        border-radius: 4px 0 0 4px;
         aspect-ratio: auto;
-        box-shadow: none;
+        box-shadow: 4px 0 8px rgba(0,0,0,0.15);
     }
 
     .quick-access .card-content {
@@ -1889,14 +1906,15 @@ body {
 
     .quick-access .card h3,
     .quick-access .card .card-title {
-        font-size: 0.78rem;
-        font-weight: 600;
+        font-size: 0.75rem;
+        font-weight: 700;
         line-height: 1.3;
         display: -webkit-box;
         -webkit-line-clamp: 2;
         -webkit-box-orient: vertical;
         overflow: hidden;
         white-space: normal;
+        color: #fff;
     }
 
     .quick-access .card p,
@@ -1910,14 +1928,14 @@ body {
         display: none !important;
     }
 
-    /* ======= CARDS — scroll horizontal para as outras secoes ======= */
+    /* ======= CARROSSEL — scroll horizontal estilo Spotify ======= */
     .cards-container:not(.quick-access) {
         display: flex;
         overflow-x: auto;
-        scroll-snap-type: x mandatory;
+        scroll-snap-type: x proximity;
         -webkit-overflow-scrolling: touch;
         scrollbar-width: none;
-        gap: 12px;
+        gap: 14px;
         padding-bottom: 4px;
         margin: 0 -14px;
         padding-left: 14px;
@@ -1929,86 +1947,113 @@ body {
     }
 
     .cards-container:not(.quick-access) .card {
-        min-width: 140px;
-        max-width: 140px;
-        padding: 10px;
+        min-width: 150px;
+        max-width: 150px;
+        padding: 0;
         scroll-snap-align: start;
         flex-shrink: 0;
-        border-radius: var(--radius-md);
+        border-radius: 0;
+        background: transparent;
+    }
+
+    .cards-container:not(.quick-access) .card:hover {
+        background: transparent;
     }
 
     .cards-container:not(.quick-access) .card-img-wrap {
         margin-bottom: 10px;
-        border-radius: 6px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+        border-radius: 8px;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+        aspect-ratio: 1;
     }
 
     .cards-container:not(.quick-access) .card h3,
     .cards-container:not(.quick-access) .card .card-title {
         font-size: 0.82rem;
-        line-height: 1.25;
+        font-weight: 600;
+        line-height: 1.3;
+        white-space: normal;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
     }
 
     .cards-container:not(.quick-access) .card p,
     .cards-container:not(.quick-access) .card .card-subtitle {
         font-size: 0.72rem;
+        color: var(--sp-text-subdued);
+        margin-top: 2px;
     }
 
     .cards-container:not(.quick-access) .card-content {
-        min-height: 36px;
+        min-height: auto;
+        padding: 0 2px;
     }
 
     .cards-container:not(.quick-access) .card-play-btn {
-        width: 32px;
-        height: 32px;
-        font-size: 0.85rem;
-        bottom: 4px;
-        right: 4px;
-        opacity: 1;
-        transform: none;
+        display: none !important;
     }
 
-    .btn-fav, .btn-add-playlist {
-        width: 26px;
-        height: 26px;
-        font-size: 0.7rem;
-        opacity: 0;
+    .cards-container:not(.quick-access) .btn-fav,
+    .cards-container:not(.quick-access) .btn-add-playlist {
+        display: none !important;
     }
 
-    .btn-fav { top: 16px; right: 16px; }
-    .btn-add-playlist { top: 16px; right: 46px; }
-
-    /* Player compact + above mobile nav */
+    /* ======= PLAYER — Spotify mobile mini-player ======= */
     .player {
-        height: 64px;
-        padding: 0 10px;
+        height: auto;
+        padding: 0;
         bottom: 56px;
-        border-radius: 0;
-    }
-
-    .player-left, .player-top {
-        min-width: 0;
-        width: auto;
-        flex: 1;
-        gap: 10px;
+        left: 8px;
+        right: 8px;
+        border-radius: 8px;
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 0;
+        background: #382420;
         overflow: hidden;
     }
 
+    /* app.php uses .player-left, dashboard.php uses .player-top */
+    .player-top,
+    .player-left {
+        display: flex;
+        align-items: center;
+        min-width: 0;
+        flex: 1;
+        gap: 10px;
+        overflow: hidden;
+        padding: 8px 8px 8px 8px;
+        width: auto;
+    }
+
+    .player-song {
+        flex: 1;
+        min-width: 0;
+    }
+
     .player-song-img {
-        width: 44px;
-        height: 44px;
-        border-radius: 6px;
+        width: 42px;
+        height: 42px;
+        border-radius: 4px;
+        flex-shrink: 0;
     }
 
     .player-song-details {
         overflow: hidden;
+        flex: 1;
+        min-width: 0;
     }
 
     .player-song-details h4 {
-        font-size: 0.82rem;
+        font-size: 0.8rem;
+        font-weight: 600;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
+        color: #fff;
+        line-height: 1.3;
     }
 
     .player-song-details p {
@@ -2016,24 +2061,60 @@ body {
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
+        color: rgba(255,255,255,0.6);
+        line-height: 1.3;
     }
 
-    .player-fav-btn,
+    .player-fav-btn {
+        display: flex !important;
+        flex-shrink: 0;
+        width: 28px;
+        height: 28px;
+        font-size: 0.8rem;
+    }
+
     .player-add-btn {
-        display: none;
+        display: none !important;
     }
 
     .player-center {
         width: auto;
         flex: 0 0 auto;
+        padding-right: 8px;
     }
 
+    /* Progress bar full-width at bottom of player card */
     .progress-container {
+        display: flex;
+        width: 100%;
+        padding: 0;
+        gap: 0;
+        align-items: center;
+        order: 10;
+    }
+
+    .progress-container .time {
         display: none;
     }
 
+    .progress-container .volume-controls {
+        display: none;
+    }
+
+    .progress-bar {
+        height: 3px !important;
+        border-radius: 0 0 8px 8px !important;
+        background: rgba(255,255,255,0.2) !important;
+    }
+
+    .progress-bar .progress {
+        border-radius: 0 !important;
+        background: #fff !important;
+    }
+
     .player-controls {
-        gap: 6px;
+        gap: 0;
+        flex-shrink: 0;
     }
 
     .player-controls button {
@@ -2042,10 +2123,17 @@ body {
         font-size: 1rem;
     }
 
+    #btn-shuffle, #btn-repeat,
+    #btn-prev, #btn-next {
+        display: none !important;
+    }
+
     #btn-play, #btn-pause {
-        width: 38px !important;
-        height: 38px !important;
-        font-size: 1.1rem !important;
+        width: 36px !important;
+        height: 36px !important;
+        font-size: 1.2rem !important;
+        background: transparent !important;
+        color: #fff !important;
     }
 
     .player-right {

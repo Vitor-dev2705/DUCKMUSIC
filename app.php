@@ -149,11 +149,11 @@ $minhas_playlists = buscarTodos("SELECT id, nome FROM playlists WHERE id_usuario
     </a>
     <a href="/paginas/explorar.php" class="mobile-nav-item nav-link" data-page="explorar">
         <i class="fas fa-search"></i>
-        <span>Explorar</span>
+        <span>Buscar</span>
     </a>
     <a href="/paginas/biblioteca.php" class="mobile-nav-item nav-link" data-page="biblioteca">
-        <i class="fas fa-book"></i>
-        <span>Biblioteca</span>
+        <i class="fas fa-bars-staggered"></i>
+        <span>Sua Biblioteca</span>
     </a>
 </nav>
 

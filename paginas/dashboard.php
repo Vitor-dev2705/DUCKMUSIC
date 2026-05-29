@@ -134,7 +134,7 @@ function renderCard($musica) {
                         <i class="fas fa-star" title="Apoiador!"></i>
                     <?php endif; ?>
                 </div>
-                <div>
+                <div class="header-greeting">
                     <h1><?= $saudacao ?>, <?= htmlspecialchars($usuario['nome_usuario']) ?>!</h1>
                     <p class="header-subtitle">Descubra novas batidas ou curta seus classicos.</p>
                 </div>
