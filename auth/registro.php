@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../includes/init.php';
 require_once __DIR__ . '/../includes/csrf_helper.php';
+require_once __DIR__ . '/../includes/email_helper.php';
 
 $erro = '';
 $dados = [
@@ -11,86 +12,86 @@ $dados = [
     'telefone'        => ''
 ];
 
-// Limites de data (13-150 anos)
 $dataAtual  = new DateTime();
 $dataMaxima = $dataAtual->modify('-13 years')->format('Y-m-d');
 $dataMinima = (new DateTime())->modify('-150 years')->format('Y-m-d');
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (!verificarTokenCSRF($_POST['csrf_token'] ?? '')) {
-        $erro = "Falha na validacao. Tente novamente.";
-    } else {
-        $dados = [
-            'nome_completo'   => trim($_POST['nome_completo'] ?? ''),
-            'nome_usuario'    => trim($_POST['nome_usuario'] ?? ''),
-            'email'           => trim($_POST['email'] ?? ''),
-            'data_nascimento' => $_POST['data_nascimento'] ?? '',
-            'telefone'        => preg_replace('/\D/', '', $_POST['telefone'] ?? '')
-        ];
+    $dados = [
+        'nome_completo'   => trim($_POST['nome_completo'] ?? ''),
+        'nome_usuario'    => trim($_POST['nome_usuario'] ?? ''),
+        'email'           => strtolower(trim($_POST['email'] ?? '')),
+        'data_nascimento' => $_POST['data_nascimento'] ?? '',
+        'telefone'        => preg_replace('/\D/', '', $_POST['telefone'] ?? '')
+    ];
 
-        $senha = $_POST['senha'] ?? '';
-        $confirmar_senha = $_POST['confirmar_senha'] ?? '';
+    $senha = $_POST['senha'] ?? '';
+    $confirmar_senha = $_POST['confirmar_senha'] ?? '';
 
-        // Validacoes
-        if (empty($dados['nome_completo'])) {
-            $erro = "Nome completo e obrigatorio.";
-        } elseif (strlen($dados['nome_usuario']) < 4) {
-            $erro = "Nome de usuario deve ter pelo menos 4 caracteres.";
-        } elseif (!preg_match('/^[a-zA-Z0-9_]+$/', $dados['nome_usuario'])) {
-            $erro = "Nome de usuario pode conter apenas letras, numeros e underscore.";
-        } elseif (!filter_var($dados['email'], FILTER_VALIDATE_EMAIL)) {
-            $erro = "E-mail invalido.";
-        } elseif (strlen($senha) < 8) {
-            $erro = "A senha deve ter pelo menos 8 caracteres.";
-        } elseif (!preg_match('/^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/', $senha)) {
-            $erro = "A senha precisa conter 1 maiuscula, 1 numero e 1 caractere especial.";
-        } elseif ($senha !== $confirmar_senha) {
-            $erro = "As senhas nao coincidem.";
-        } elseif (!preg_match('/^\d{10,11}$/', $dados['telefone'])) {
-            $erro = "Telefone invalido. Use apenas numeros (DDD + numero).";
-        } elseif (!validarDataNascimento($dados['data_nascimento'])) {
-            $erro = "Data de nascimento invalida. Idade minima: 13 anos.";
+    // Validacoes
+    if (empty($dados['nome_completo'])) {
+        $erro = "Nome completo e obrigatorio.";
+    } elseif (strlen($dados['nome_usuario']) < 4) {
+        $erro = "Nome de usuario deve ter pelo menos 4 caracteres.";
+    } elseif (!preg_match('/^[a-zA-Z0-9_]+$/', $dados['nome_usuario'])) {
+        $erro = "Nome de usuario pode conter apenas letras, numeros e underscore.";
+    } elseif (!filter_var($dados['email'], FILTER_VALIDATE_EMAIL)) {
+        $erro = "E-mail invalido.";
+    } elseif (strlen($senha) < 8) {
+        $erro = "A senha deve ter pelo menos 8 caracteres.";
+    } elseif (!preg_match('/^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/', $senha)) {
+        $erro = "A senha precisa conter 1 maiuscula, 1 numero e 1 caractere especial.";
+    } elseif ($senha !== $confirmar_senha) {
+        $erro = "As senhas nao coincidem.";
+    } elseif (!preg_match('/^\d{10,11}$/', $dados['telefone'])) {
+        $erro = "Telefone invalido. Use apenas numeros (DDD + numero).";
+    } elseif (!validarDataNascimento($dados['data_nascimento'])) {
+        $erro = "Data de nascimento invalida. Idade minima: 13 anos.";
+    }
+
+    if (empty($erro)) {
+        $userExiste = buscarUm("SELECT id FROM usuarios WHERE LOWER(nome_usuario) = LOWER(?)", [$dados['nome_usuario']]);
+        $emailExiste = buscarUm("SELECT id FROM usuarios WHERE LOWER(email) = LOWER(?)", [$dados['email']]);
+
+        if ($userExiste && $emailExiste) {
+            $erro = "Nome de usuario e e-mail ja estao em uso.";
+        } elseif ($userExiste) {
+            $erro = "Nome de usuario ja esta em uso. Escolha outro.";
+        } elseif ($emailExiste) {
+            $erro = "E-mail ja esta cadastrado. Use outro ou faca login.";
         }
 
         if (empty($erro)) {
-            // Verifica username e email separadamente para erro mais claro
-            $userExiste = buscarUm("SELECT id FROM usuarios WHERE nome_usuario = ?", [$dados['nome_usuario']]);
-            $emailExiste = buscarUm("SELECT id FROM usuarios WHERE email = ?", [$dados['email']]);
+            $senha_hash = password_hash($senha, PASSWORD_DEFAULT);
+            $codigo = gerarCodigoVerificacao();
+            $expira = date('Y-m-d H:i:s', time() + 900); // 15 min
 
-            if ($userExiste && $emailExiste) {
-                $erro = "Nome de usuario e e-mail ja estao em uso.";
-            } elseif ($userExiste) {
-                $erro = "Nome de usuario ja esta em uso. Escolha outro.";
-            } elseif ($emailExiste) {
-                $erro = "E-mail ja esta cadastrado. Use outro ou faca login.";
-            }
+            try {
+                $novoId = inserir("INSERT INTO usuarios (nome_completo, nome_usuario, email, senha, data_nascimento, telefone, email_verificado, codigo_verificacao, codigo_expira_em)
+                         VALUES (?, ?, ?, ?, ?, ?, false, ?, ?)", [
+                    $dados['nome_completo'],
+                    $dados['nome_usuario'],
+                    $dados['email'],
+                    $senha_hash,
+                    $dados['data_nascimento'],
+                    $dados['telefone'],
+                    $codigo,
+                    $expira
+                ]);
 
-            if (empty($erro)) {
-                $senha_hash = password_hash($senha, PASSWORD_DEFAULT);
+                // Envia email com codigo
+                enviarCodigoVerificacao($dados['email'], $codigo, $dados['nome_completo']);
 
-                try {
-                    inserir("INSERT INTO usuarios (nome_completo, nome_usuario, email, senha, data_nascimento, telefone)
-                             VALUES (?, ?, ?, ?, ?, ?)", [
-                        $dados['nome_completo'],
-                        $dados['nome_usuario'],
-                        $dados['email'],
-                        $senha_hash,
-                        $dados['data_nascimento'],
-                        $dados['telefone']
-                    ]);
-
-                    $_SESSION['mensagem'] = "Conta criada com sucesso! Faca login.";
-                    header("Location: login.php");
-                    exit();
-                } catch (Exception $e) {
-                    $erro = "Erro ao criar conta. Tente novamente.";
-                }
+                $_SESSION['verificar_email'] = $dados['email'];
+                session_write_close();
+                header("Location: verificar_email.php");
+                exit();
+            } catch (Exception $e) {
+                $erro = "Erro ao criar conta. Tente novamente.";
             }
         }
     }
 }
-
-$csrf_token = gerarTokenCSRF();
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -98,7 +99,8 @@ $csrf_token = gerarTokenCSRF();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Registro - DuckMusic</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <meta name="theme-color" content="#121212">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/css/auth.css">
 </head>
@@ -114,8 +116,6 @@ $csrf_token = gerarTokenCSRF();
         <?php endif; ?>
 
         <form method="POST" id="registroForm">
-            <input type="hidden" name="csrf_token" value="<?= htmlsafe($csrf_token) ?>">
-
             <div class="form-group">
                 <input type="text" class="form-control" name="nome_completo"
                     placeholder="Nome completo" required
@@ -124,13 +124,13 @@ $csrf_token = gerarTokenCSRF();
 
             <div class="form-group">
                 <input type="text" class="form-control" name="nome_usuario"
-                    placeholder="Nome de usuario" required
+                    placeholder="Nome de usuario" required autocapitalize="none"
                     value="<?= htmlsafe($dados['nome_usuario']) ?>">
             </div>
 
             <div class="form-group">
                 <input type="email" class="form-control" name="email"
-                    placeholder="E-mail" required
+                    placeholder="E-mail" required autocapitalize="none"
                     value="<?= htmlsafe($dados['email']) ?>">
             </div>
 
