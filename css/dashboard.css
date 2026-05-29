@@ -243,6 +243,14 @@ body {
     gap: 16px;
 }
 
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    min-width: 0;
+    flex: 1;
+}
+
 .header h1 {
     font-size: 1.8rem;
     font-weight: 700;
@@ -254,7 +262,8 @@ body {
     margin-bottom: 0;
 }
 
-.header p {
+.header p,
+.header-subtitle {
     color: var(--sp-text-secondary);
     font-size: 0.9rem;
     margin-top: 2px;
@@ -1775,29 +1784,39 @@ body {
         padding-bottom: calc(64px + 56px + 16px);
     }
 
-    /* Header mobile — compacto com avatar na direita */
+    /* ======= HEADER MOBILE — Spotify style ======= */
     .header {
-        flex-direction: row;
-        align-items: center;
-        gap: 12px;
-        margin-bottom: 20px;
+        flex-wrap: nowrap;
+        gap: 10px;
+        margin-bottom: 16px;
         padding: 0;
     }
 
-    .header > div:first-child {
-        flex: 1;
-        min-width: 0;
+    .header-left {
+        gap: 10px;
+    }
+
+    .header-left .user-avatar {
+        width: 36px !important;
+        height: 36px !important;
+        flex-shrink: 0;
+    }
+
+    .header-left .avatar-placeholder {
+        width: 36px !important;
+        height: 36px !important;
+        font-size: 0.85rem !important;
     }
 
     .header h1 {
-        font-size: 1.2rem;
+        font-size: 1.15rem;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
     }
 
-    .header p {
-        font-size: 0.8rem;
+    .header-subtitle {
+        display: none;
     }
 
     .user-menu {
@@ -1811,30 +1830,88 @@ body {
         font-size: 0.8rem;
     }
 
-    .user-avatar {
-        width: 32px !important;
-        height: 32px !important;
-    }
-
-    .avatar-placeholder {
-        width: 32px !important;
-        height: 32px !important;
-        font-size: 0.8rem !important;
-    }
-
-    /* Sections */
+    /* ======= SECTIONS ======= */
     .section-title {
-        font-size: 1.15rem;
+        font-size: 1.2rem;
         font-weight: 700;
-        margin: 24px 0 12px;
+        margin: 20px 0 10px;
     }
 
     .section-title::after {
         display: none;
     }
 
-    /* Cards — scroll horizontal estilo Spotify mobile */
-    .cards-container {
+    /* ======= QUICK ACCESS — mini cards grid Spotify ======= */
+    .quick-access {
+        display: grid !important;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+        overflow-x: visible !important;
+        scroll-snap-type: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    .quick-access .card {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        min-width: auto !important;
+        max-width: none !important;
+        padding: 0;
+        gap: 0;
+        background: var(--sp-bg-highlight);
+        border-radius: 6px;
+        overflow: hidden;
+        height: 58px;
+    }
+
+    .quick-access .card:hover {
+        background: var(--sp-bg-tinted);
+    }
+
+    .quick-access .card-img-wrap {
+        width: 58px;
+        height: 58px;
+        min-width: 58px;
+        margin: 0;
+        border-radius: 6px 0 0 6px;
+        aspect-ratio: auto;
+        box-shadow: none;
+    }
+
+    .quick-access .card-content {
+        flex: 1;
+        min-width: 0;
+        min-height: auto;
+        padding: 0 10px;
+    }
+
+    .quick-access .card h3,
+    .quick-access .card .card-title {
+        font-size: 0.78rem;
+        font-weight: 600;
+        line-height: 1.3;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        white-space: normal;
+    }
+
+    .quick-access .card p,
+    .quick-access .card .card-subtitle {
+        display: none;
+    }
+
+    .quick-access .card-play-btn,
+    .quick-access .btn-fav,
+    .quick-access .btn-add-playlist {
+        display: none !important;
+    }
+
+    /* ======= CARDS — scroll horizontal para as outras secoes ======= */
+    .cards-container:not(.quick-access) {
         display: flex;
         overflow-x: auto;
         scroll-snap-type: x mandatory;
@@ -1847,11 +1924,11 @@ body {
         padding-right: 14px;
     }
 
-    .cards-container::-webkit-scrollbar {
+    .cards-container:not(.quick-access)::-webkit-scrollbar {
         display: none;
     }
 
-    .card {
+    .cards-container:not(.quick-access) .card {
         min-width: 140px;
         max-width: 140px;
         padding: 10px;
@@ -1860,26 +1937,28 @@ body {
         border-radius: var(--radius-md);
     }
 
-    .card-img-wrap {
+    .cards-container:not(.quick-access) .card-img-wrap {
         margin-bottom: 10px;
         border-radius: 6px;
         box-shadow: 0 4px 12px rgba(0,0,0,0.4);
     }
 
-    .card h3, .card .card-title {
+    .cards-container:not(.quick-access) .card h3,
+    .cards-container:not(.quick-access) .card .card-title {
         font-size: 0.82rem;
         line-height: 1.25;
     }
 
-    .card p, .card .card-subtitle {
+    .cards-container:not(.quick-access) .card p,
+    .cards-container:not(.quick-access) .card .card-subtitle {
         font-size: 0.72rem;
     }
 
-    .card-content {
+    .cards-container:not(.quick-access) .card-content {
         min-height: 36px;
     }
 
-    .card-play-btn {
+    .cards-container:not(.quick-access) .card-play-btn {
         width: 32px;
         height: 32px;
         font-size: 0.85rem;
@@ -1894,11 +1973,6 @@ body {
         height: 26px;
         font-size: 0.7rem;
         opacity: 0;
-    }
-
-    .card:active .btn-fav,
-    .card:active .btn-add-playlist {
-        opacity: 1;
     }
 
     .btn-fav { top: 16px; right: 16px; }

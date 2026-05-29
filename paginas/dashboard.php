@@ -17,6 +17,12 @@ if (!isset($_SESSION['id_usuario'])) {
 
 $id_usuario_logado = $_SESSION['id_usuario'];
 $usuario = buscarUm("SELECT *, possui_estrela_apoio FROM usuarios WHERE id = ?", [$id_usuario_logado]);
+
+// Saudacao baseada na hora
+$hora = (int)date('H');
+if ($hora < 12) $saudacao = 'Bom dia';
+elseif ($hora < 18) $saudacao = 'Boa tarde';
+else $saudacao = 'Boa noite';
 if (!$usuario) {
     session_destroy();
     header("Location: login.php");
@@ -114,13 +120,7 @@ function renderCard($musica) {
 
     <div class="main-content">
         <div class="header">
-            <div>
-                <h1>Bem-vindo, <?= htmlspecialchars($usuario['nome_usuario']) ?>!</h1>
-                <p>Descubra novas batidas ou curta seus classicos.</p>
-            </div>
-            <div class="user-menu">
-                <a href="configuracoes.php" class="btn" title="Configuracoes"><i class="fas fa-cog"></i></a>
-                <a href="/auth/logout.php" class="btn" title="Sair"><i class="fas fa-sign-out-alt"></i></a>
+            <div class="header-left">
                 <div class="user-avatar">
                     <?php
                     $avatarPath = $usuario['avatar'] ?? 'avatar-padrao.jpg';
@@ -134,12 +134,20 @@ function renderCard($musica) {
                         <i class="fas fa-star" title="Apoiador!"></i>
                     <?php endif; ?>
                 </div>
+                <div>
+                    <h1><?= $saudacao ?>, <?= htmlspecialchars($usuario['nome_usuario']) ?>!</h1>
+                    <p class="header-subtitle">Descubra novas batidas ou curta seus classicos.</p>
+                </div>
+            </div>
+            <div class="user-menu">
+                <a href="configuracoes.php" class="btn" title="Configuracoes"><i class="fas fa-cog"></i></a>
+                <a href="/auth/logout.php" class="btn" title="Sair"><i class="fas fa-sign-out-alt"></i></a>
             </div>
         </div>
 
         <h2 class="section-title">Em Alta</h2>
-        <div class="cards-container">
-            <?php foreach ($chart as $m): renderCard($m); endforeach; ?>
+        <div class="cards-container quick-access">
+            <?php foreach (array_slice($chart, 0, 8) as $m): renderCard($m); endforeach; ?>
             <?php if (empty($chart)): ?><p>Nenhuma musica encontrada.</p><?php endif; ?>
         </div>
 
