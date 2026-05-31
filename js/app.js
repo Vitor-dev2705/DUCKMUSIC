@@ -184,7 +184,7 @@
         }
 
         // --- Links dentro do conteudo que devem ser SPA ---
-        var internalLinks = content.querySelectorAll('a[href*="ver_playlist"], a[href*="configuracoes"], a[href*="dashboard"], a[href*="explorar"], a[href*="biblioteca"], a[href*="iniciar_doacao"]');
+        var internalLinks = content.querySelectorAll('a[href*="ver_playlist"], a[href*="configuracoes"], a[href*="dashboard"], a[href*="explorar"], a[href*="biblioteca"], a[href*="iniciar_doacao"], a[href*="artista"]');
         internalLinks.forEach(function (a) {
             if (a._spa) return;
             a._spa = true;
@@ -1069,6 +1069,49 @@
                     navigateTo(href);
                     return;
                 }
+            }
+
+            // --- Clicar no nome do artista (player ou fullscreen) -> pagina do artista ---
+            var artistLink = target.closest('#player-artist, #player-full-artist');
+            if (artistLink) {
+                var artistName = artistLink.textContent.trim();
+                if (artistName && artistName !== 'DuckMusic') {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    var pfEl = document.getElementById('player-full');
+                    if (pfEl && pfEl.classList.contains('active')) {
+                        pfEl.classList.add('sliding-down');
+                        pfEl.classList.remove('sliding-up');
+                        setTimeout(function() { pfEl.classList.remove('active', 'sliding-down'); document.body.style.overflow = ''; }, 300);
+                    }
+                    navigateTo('/paginas/artista.php?nome=' + encodeURIComponent(artistName));
+                    return;
+                }
+            }
+
+            // --- Clicar na track row da pagina do artista ---
+            var trackRow = target.closest('.artist-track-row[data-id]');
+            if (trackRow && !target.closest('.btn-fav')) {
+                e.preventDefault();
+                buildQueue();
+                var songId = trackRow.dataset.id;
+                var idx = -1;
+                for (var i = 0; i < queue.length; i++) {
+                    if (queue[i].id === songId) { idx = i; break; }
+                }
+                if (idx !== -1) {
+                    loadSong(idx);
+                } else {
+                    var song = {
+                        id: trackRow.dataset.id,
+                        audio: norm(trackRow.dataset.audio),
+                        titulo: trackRow.dataset.titulo || 'Sem titulo',
+                        artista: trackRow.dataset.artista || 'Desconhecido',
+                        capa: norm(trackRow.dataset.capa)
+                    };
+                    if (song.audio) { queue.push(song); loadSong(queue.length - 1); }
+                }
+                return;
             }
 
             // --- Favoritar ---

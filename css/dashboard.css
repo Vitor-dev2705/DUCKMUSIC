@@ -1698,6 +1698,205 @@ body {
 
 
 /* =========================================
+   ARTIST PAGE
+   ========================================= */
+.artist-banner {
+    position: relative;
+    height: 340px;
+    background-size: cover;
+    background-position: center top;
+    margin: -24px -32px 0;
+    display: flex;
+    align-items: flex-end;
+}
+
+.artist-banner-overlay {
+    width: 100%;
+    padding: 40px 32px 24px;
+    background: linear-gradient(transparent 0%, rgba(18,18,18,0.7) 60%, var(--sp-bg-base) 100%);
+}
+
+.artist-name {
+    font-size: 4rem;
+    font-weight: 900;
+    color: #fff;
+    line-height: 1;
+    margin: 0;
+    text-shadow: 0 2px 12px rgba(0,0,0,0.5);
+}
+
+.artist-fans {
+    font-size: 0.9rem;
+    color: var(--sp-text-secondary);
+    margin-top: 8px;
+}
+
+.artist-actions {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 20px 0;
+}
+
+.artist-play-btn {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: var(--sp-green);
+    border: none;
+    color: #000;
+    font-size: 1.3rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.1s, background 0.2s;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+}
+
+.artist-play-btn:hover {
+    transform: scale(1.05);
+    background: var(--sp-green-light);
+}
+
+.artist-shuffle-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: none;
+    border: none;
+    color: var(--sp-text-secondary);
+    font-size: 1.2rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.artist-shuffle-btn:hover {
+    color: var(--sp-text);
+}
+
+/* Track rows */
+.artist-tracks {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin-bottom: 32px;
+}
+
+.artist-track-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 8px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.artist-track-row:hover {
+    background: rgba(255,255,255,0.08);
+}
+
+.track-num {
+    width: 20px;
+    text-align: right;
+    font-size: 0.9rem;
+    color: var(--sp-text-secondary);
+    flex-shrink: 0;
+}
+
+.artist-track-row:hover .track-num {
+    color: transparent;
+}
+
+.artist-track-row:hover .track-num::before {
+    content: '\f04b';
+    font-family: 'Font Awesome 6 Free';
+    font-weight: 900;
+    color: var(--sp-text);
+    position: absolute;
+}
+
+.track-cover {
+    width: 40px;
+    height: 40px;
+    border-radius: 4px;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.track-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.track-info h4 {
+    font-size: 0.9rem;
+    font-weight: 400;
+    color: var(--sp-text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin: 0;
+}
+
+.track-info p {
+    font-size: 0.75rem;
+    color: var(--sp-text-secondary);
+    margin: 2px 0 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.track-duration {
+    font-size: 0.8rem;
+    color: var(--sp-text-secondary);
+    flex-shrink: 0;
+    font-variant-numeric: tabular-nums;
+}
+
+/* Album cards na discografia */
+.album-card {
+    cursor: pointer;
+}
+
+@media (max-width: 576px) {
+    .artist-banner {
+        height: 240px;
+        margin: -16px -14px 0;
+    }
+    .artist-banner-overlay {
+        padding: 24px 14px 16px;
+    }
+    .artist-name {
+        font-size: 2rem;
+    }
+    .artist-actions {
+        padding: 14px 0;
+    }
+    .artist-play-btn {
+        width: 48px;
+        height: 48px;
+        font-size: 1.1rem;
+    }
+    .track-cover {
+        width: 36px;
+        height: 36px;
+    }
+    .track-info h4 {
+        font-size: 0.85rem;
+    }
+    .track-num {
+        width: 16px;
+        font-size: 0.8rem;
+    }
+}
+
+
+/* =========================================
    PLAYER FULLSCREEN — Spotify Mobile
    ========================================= */
 .player-full {
