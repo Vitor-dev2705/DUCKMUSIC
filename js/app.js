@@ -35,6 +35,8 @@
     // =============================================
     let queue        = [];       // fila de reproducao
     let curIdx       = -1;       // indice atual na fila
+    let nowPlayingId = '';       // id da musica tocando (para highlight)
+    let nowPlayingTitle = '';    // titulo da musica tocando
     let shuffle      = false;
     let repeat       = 0;        // 0=off 1=all 2=one
     let navigating   = false;
@@ -184,7 +186,7 @@
         }
 
         // --- Links dentro do conteudo que devem ser SPA ---
-        var internalLinks = content.querySelectorAll('a[href*="ver_playlist"], a[href*="configuracoes"], a[href*="dashboard"], a[href*="explorar"], a[href*="biblioteca"], a[href*="iniciar_doacao"], a[href*="artista"]');
+        var internalLinks = content.querySelectorAll('a[href*="ver_playlist"], a[href*="configuracoes"], a[href*="dashboard"], a[href*="explorar"], a[href*="biblioteca"], a[href*="iniciar_doacao"], a[href*="artista"], a[href*="album"]');
         internalLinks.forEach(function (a) {
             if (a._spa) return;
             a._spa = true;
@@ -200,8 +202,32 @@
         // --- Icones de favorito nos cards ---
         updateAllFavIcons();
 
+        // --- Highlight da musica tocando (se estiver tocando) ---
+        if (nowPlayingId) {
+            highlightPlaying();
+        }
+
         // --- Carrossel touch mobile ---
         initCarouselTouch();
+
+        // --- Pagina do artista/album: Tocar Todas / Shuffle ---
+        var playAllBtn = content.querySelector('#artist-play-all') || content.querySelector('#album-play-all');
+        var shuffleBtn = content.querySelector('#artist-shuffle') || content.querySelector('#album-shuffle');
+        if (playAllBtn) {
+            playAllBtn.addEventListener('click', function() {
+                buildQueue();
+                if (queue.length > 0) loadSong(0);
+            });
+        }
+        if (shuffleBtn) {
+            shuffleBtn.addEventListener('click', function() {
+                buildQueue();
+                if (queue.length > 0) {
+                    if (!shuffle) toggleShuffle();
+                    loadSong(Math.floor(Math.random() * queue.length));
+                }
+            });
+        }
     }
 
     /**
@@ -263,8 +289,92 @@
     // =============================================
     // 5. FILA DE REPRODUCAO
     // =============================================
+    /**
+     * Destaca a musica tocando nas listas (track rows e cards)
+     * Verifica ID e titulo para evitar falsos positivos
+     */
+    function highlightPlaying() {
+        // Remove destaque anterior
+        var prev = content.querySelectorAll('.now-playing');
+        for (var i = 0; i < prev.length; i++) prev[i].classList.remove('now-playing');
+
+        if (!nowPlayingId) return;
+
+        // Track rows (artista/album) — verifica ID OU titulo
+        var rows = content.querySelectorAll('.artist-track-row[data-id]');
+        for (var j = 0; j < rows.length; j++) {
+            var row = rows[j];
+            var matchId = row.dataset.id === nowPlayingId;
+            var matchTitle = nowPlayingTitle && row.dataset.titulo === nowPlayingTitle;
+            if (matchId || matchTitle) {
+                row.classList.add('now-playing');
+            }
+        }
+
+        // Cards — verifica ID OU titulo
+        var cards = content.querySelectorAll('.card[data-id]');
+        for (var k = 0; k < cards.length; k++) {
+            var card = cards[k];
+            var matchId2 = card.dataset.id === nowPlayingId;
+            var matchTitle2 = nowPlayingTitle && card.dataset.titulo === nowPlayingTitle;
+            if (matchId2 || matchTitle2) {
+                card.classList.add('now-playing');
+            }
+        }
+    }
+
+    /**
+     * Busca musicas similares quando a fila acaba (autoplay inteligente)
+     */
+    var autoplayLoading = false;
+    function loadSimilarTracks() {
+        if (autoplayLoading) return;
+        var song = (curIdx >= 0 && curIdx < queue.length) ? queue[curIdx] : null;
+        if (!song) return;
+
+        autoplayLoading = true;
+        var artista = encodeURIComponent(song.artista || '');
+
+        fetch('/api/similar.php?artista=' + artista, { credentials: 'same-origin' })
+            .then(function(r) { return r.json(); })
+            .then(function(tracks) {
+                if (tracks && tracks.length > 0) {
+                    // Filtra tracks que ja estao na fila
+                    var existingIds = {};
+                    for (var i = 0; i < queue.length; i++) existingIds[queue[i].id] = true;
+                    var newTracks = [];
+                    for (var j = 0; j < tracks.length; j++) {
+                        if (!existingIds[tracks[j].id]) newTracks.push(tracks[j]);
+                    }
+                    if (newTracks.length > 0) {
+                        queue = queue.concat(newTracks);
+                        toast('Adicionadas ' + newTracks.length + ' musicas similares');
+                        loadSong(curIdx + 1);
+                    }
+                }
+            })
+            .catch(function() {})
+            .finally(function() { autoplayLoading = false; });
+    }
+
+    function saveToHistory(song) {
+        if (!song || !song.id) return;
+        fetch('/api/historico.php', {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                id: song.id,
+                titulo: song.titulo,
+                artista: song.artista,
+                capa: song.capa,
+                audio: song.audio
+            })
+        }).catch(function() {});
+    }
+
     function buildQueue() {
-        var items = content.querySelectorAll('.card[data-id], .song-row[data-id], .music-card[data-id]');
+        var items = content.querySelectorAll('.card[data-id], .song-row[data-id], .music-card[data-id], .artist-track-row[data-id]');
         queue = [];
         for (var i = 0; i < items.length; i++) {
             var el = items[i];
@@ -300,6 +410,14 @@
 
         // Mostra player
         player.style.display = 'flex';
+
+        // Highlight da musica tocando nas listas
+        nowPlayingId = String(song.id);
+        nowPlayingTitle = song.titulo || '';
+        highlightPlaying();
+
+        // Registra no historico
+        saveToHistory(song);
 
         // Toca
         audio.play().catch(function () {
@@ -342,15 +460,21 @@
         if (shuffle) {
             next = Math.floor(Math.random() * queue.length);
             if (queue.length > 1) while (next === curIdx) next = Math.floor(Math.random() * queue.length);
+            loadSong(next);
         } else {
-            next = (curIdx + 1) % queue.length;
-            // Se repeat=off e voltou ao 0, para
-            if (repeat === 0 && next === 0 && curIdx === queue.length - 1) {
-                audio.pause();
-                return;
+            next = curIdx + 1;
+            if (next >= queue.length) {
+                if (repeat === 1) {
+                    // Repeat all — volta ao inicio
+                    loadSong(0);
+                } else {
+                    // Fim da fila — busca musicas similares automaticamente
+                    loadSimilarTracks();
+                }
+            } else {
+                loadSong(next);
             }
         }
-        loadSong(next);
     }
 
     function playPrev() {
@@ -666,15 +790,17 @@
 
         function syncFullscreen() {
             if (!pf) return;
-            var song = queue[curIdx];
+            var song = (curIdx >= 0 && curIdx < queue.length) ? queue[curIdx] : null;
             if (!song) return;
-            var capa = song.capa || playerImg.src || '/assets/img/capa-padrao.svg';
-            pfImg.src = capa;
-            pfBg.style.backgroundImage = 'url(' + capa + ')';
-            pfTitle.textContent = song.titulo || playerTitle.textContent;
-            pfArtist.textContent = song.artista || playerArtist.textContent;
-            if (pfFav) pfFav.setAttribute('data-id', song.id || '');
-            setFavIcon(pfFav, favIds.has(String(song.id)));
+            var capa = song.capa || (playerImg ? playerImg.src : '') || '/assets/img/capa-padrao.svg';
+            if (pfImg) pfImg.src = capa;
+            if (pfBg) pfBg.style.backgroundImage = 'url(' + capa + ')';
+            if (pfTitle) pfTitle.textContent = song.titulo || (playerTitle ? playerTitle.textContent : '');
+            if (pfArtist) pfArtist.textContent = song.artista || (playerArtist ? playerArtist.textContent : '');
+            if (pfFav) { pfFav.setAttribute('data-id', song.id || ''); setFavIcon(pfFav, favIds.has(String(song.id))); }
+            // Sync shuffle/repeat state
+            if (pfShuffle) pfShuffle.style.color = shuffle ? '#1db954' : '';
+            if (pfRepeat) pfRepeat.style.color = repeat > 0 ? '#1db954' : '';
         }
 
         function syncFullscreenPlayState() {
@@ -783,13 +909,20 @@
             syncPositionState();
         });
 
-        // Click na barra de progresso para seek
-        progressBar.addEventListener('click', function (e) {
+        // Click/touch na barra de progresso para seek
+        function seekFromEvent(el, e) {
             if (!audio.duration || !isFinite(audio.duration)) return;
-            var rect = this.getBoundingClientRect();
-            var pct = (e.clientX - rect.left) / rect.width;
+            var rect = el.getBoundingClientRect();
+            var clientX = e.clientX || (e.touches && e.touches[0] ? e.touches[0].clientX : 0);
+            var pct = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
             audio.currentTime = pct * audio.duration;
-        });
+        }
+
+        progressBar.addEventListener('click', function (e) { seekFromEvent(this, e); });
+        progressBar.addEventListener('touchstart', function (e) {
+            e.preventDefault();
+            seekFromEvent(this, e);
+        }, { passive: false });
 
         // Atalhos de teclado
         document.addEventListener('keydown', function (e) {
@@ -1071,6 +1204,33 @@
                 }
             }
 
+            // --- Clicar no titulo da musica (player ou fullscreen) -> abrir album ---
+            var titleLink = target.closest('#player-title, #player-full-title');
+            if (titleLink) {
+                var song = (curIdx >= 0 && curIdx < queue.length) ? queue[curIdx] : null;
+                if (song && song.id && String(song.id).indexOf('dz_') === 0) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    // Fecha fullscreen se aberto
+                    var pfEl2 = document.getElementById('player-full');
+                    if (pfEl2 && pfEl2.classList.contains('active')) {
+                        pfEl2.classList.add('sliding-down');
+                        pfEl2.classList.remove('sliding-up');
+                        setTimeout(function() { pfEl2.classList.remove('active', 'sliding-down'); document.body.style.overflow = ''; }, 300);
+                    }
+                    // Busca album da track
+                    fetch('/api/track_album.php?id=' + encodeURIComponent(song.id), { credentials: 'same-origin' })
+                        .then(function(r) { return r.json(); })
+                        .then(function(data) {
+                            if (data.album_id) {
+                                navigateTo('/paginas/album.php?id=' + data.album_id);
+                            }
+                        })
+                        .catch(function() {});
+                    return;
+                }
+            }
+
             // --- Clicar no nome do artista (player ou fullscreen) -> pagina do artista ---
             var artistLink = target.closest('#player-artist, #player-full-artist');
             if (artistLink) {
@@ -1087,6 +1247,18 @@
                     navigateTo('/paginas/artista.php?nome=' + encodeURIComponent(artistName));
                     return;
                 }
+            }
+
+            // --- Clicar no album da discografia -> abrir pagina do album ---
+            var albumCard = target.closest('.album-card[data-album-id]');
+            if (albumCard) {
+                e.preventDefault();
+                e.stopPropagation();
+                var albumId = albumCard.dataset.albumId;
+                if (albumId) {
+                    navigateTo('/paginas/album.php?id=' + albumId);
+                }
+                return;
             }
 
             // --- Clicar na track row da pagina do artista ---

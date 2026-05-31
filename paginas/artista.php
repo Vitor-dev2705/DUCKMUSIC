@@ -89,6 +89,9 @@ function renderCard($musica) {
 <body>
 <div class="main-content">
 
+    <!-- Botao Voltar -->
+    <button class="btn-back" onclick="history.back()" title="Voltar"><i class="fas fa-arrow-left"></i></button>
+
     <!-- Banner do Artista -->
     <div class="artist-banner" style="background-image: url('<?= htmlspecialchars($artistImg) ?>')">
         <div class="artist-banner-overlay">
@@ -126,6 +129,7 @@ function renderCard($musica) {
                             <p><?= htmlspecialchars($t['album_titulo']) ?></p>
                         <?php endif; ?>
                     </div>
+                    <button class="btn-fav track-fav" data-id="<?= htmlspecialchars($t['id']) ?>" title="Favoritar"><i class="far fa-heart"></i></button>
                     <span class="track-duration"><?= gmdate('i:s', $t['duracao'] ?? 30) ?></span>
                 </div>
             <?php endforeach; ?>

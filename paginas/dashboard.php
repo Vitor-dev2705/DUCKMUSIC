@@ -40,6 +40,16 @@ $_SESSION['favoritas_ids'] = array_merge(
 
 $minhas_playlists = buscarTodos("SELECT id, nome FROM playlists WHERE id_usuario_criador = ? ORDER BY nome ASC", [$id_usuario_logado]);
 
+// === HISTORICO RECENTE ===
+$recentes = buscarTodos(
+    "SELECT deezer_id, id_musica, titulo, artista, capa, audio
+     FROM historico_reproducao
+     WHERE id_usuario = ?
+     ORDER BY data_reproducao DESC
+     LIMIT 8",
+    [$id_usuario_logado]
+);
+
 // === DEEZER API ===
 $chart = deezerChart(10);
 $funk = deezerBuscar('funk brasileiro', 10);
@@ -145,9 +155,25 @@ function renderCard($musica) {
             </div>
         </div>
 
+        <?php if (!empty($recentes)): ?>
+            <h2 class="section-title">Tocados Recentemente</h2>
+            <div class="cards-container quick-access">
+                <?php foreach ($recentes as $r):
+                    $recentCard = [
+                        'id' => $r['deezer_id'] ?: (string)$r['id_musica'],
+                        'caminho_arquivo' => $r['audio'],
+                        'titulo' => $r['titulo'],
+                        'nome_artista' => $r['artista'],
+                        'caminho_capa' => $r['capa']
+                    ];
+                    renderCard($recentCard);
+                endforeach; ?>
+            </div>
+        <?php endif; ?>
+
         <h2 class="section-title">Em Alta</h2>
-        <div class="cards-container quick-access">
-            <?php foreach (array_slice($chart, 0, 8) as $m): renderCard($m); endforeach; ?>
+        <div class="cards-container <?= empty($recentes) ? 'quick-access' : '' ?>">
+            <?php foreach (array_slice($chart, 0, 10) as $m): renderCard($m); endforeach; ?>
             <?php if (empty($chart)): ?><p>Nenhuma musica encontrada.</p><?php endif; ?>
         </div>
 

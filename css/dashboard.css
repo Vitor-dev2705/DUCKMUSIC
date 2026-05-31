@@ -1851,11 +1851,95 @@ body {
     text-overflow: ellipsis;
 }
 
+.track-fav {
+    background: none;
+    border: none;
+    color: var(--sp-text-secondary);
+    font-size: 0.9rem;
+    cursor: pointer;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    opacity: 0;
+    transition: opacity 0.15s;
+}
+
+.artist-track-row:hover .track-fav {
+    opacity: 1;
+}
+
+.track-fav.favorito i,
+.track-fav:has(i.fas) {
+    color: var(--sp-green);
+    opacity: 1;
+}
+
 .track-duration {
     font-size: 0.8rem;
     color: var(--sp-text-secondary);
     flex-shrink: 0;
     font-variant-numeric: tabular-nums;
+    min-width: 36px;
+    text-align: right;
+}
+
+.track-num {
+    position: relative;
+}
+
+/* =========================================
+   NOW PLAYING HIGHLIGHT
+   ========================================= */
+/* Track row tocando */
+.artist-track-row.now-playing {
+    background: rgba(29,185,84,0.08);
+}
+
+.artist-track-row.now-playing .track-info h4 {
+    color: var(--sp-green);
+}
+
+.artist-track-row.now-playing .track-info p {
+    color: var(--sp-green-light);
+}
+
+/* Numero vira equalizador animado */
+.artist-track-row.now-playing .track-num {
+    font-size: 0 !important;
+    color: transparent !important;
+}
+
+.artist-track-row.now-playing .track-num::after {
+    content: '';
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%231db954'%3E%3Crect x='2' y='8' width='4' height='8' rx='1'%3E%3Canimate attributeName='height' values='8;16;8' dur='0.8s' repeatCount='indefinite'/%3E%3Canimate attributeName='y' values='8;4;8' dur='0.8s' repeatCount='indefinite'/%3E%3C/rect%3E%3Crect x='10' y='5' width='4' height='14' rx='1'%3E%3Canimate attributeName='height' values='14;6;14' dur='0.6s' repeatCount='indefinite'/%3E%3Canimate attributeName='y' values='5;9;5' dur='0.6s' repeatCount='indefinite'/%3E%3C/rect%3E%3Crect x='18' y='9' width='4' height='6' rx='1'%3E%3Canimate attributeName='height' values='6;14;6' dur='0.7s' repeatCount='indefinite'/%3E%3Canimate attributeName='y' values='9;5;9' dur='0.7s' repeatCount='indefinite'/%3E%3C/rect%3E%3C/svg%3E") no-repeat center;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+/* Card tocando */
+.card.now-playing {
+    outline: 2px solid var(--sp-green);
+    outline-offset: -2px;
+    border-radius: var(--radius-md);
+}
+
+.card.now-playing h3,
+.card.now-playing .card-title {
+    color: var(--sp-green) !important;
+}
+
+/* Quick-access card tocando */
+.quick-access .card.now-playing {
+    outline: 2px solid var(--sp-green);
+    border-radius: 4px;
 }
 
 /* Album cards na discografia */
@@ -1863,6 +1947,150 @@ body {
     cursor: pointer;
 }
 
+/* =========================================
+   BACK BUTTON (artista + album)
+   ========================================= */
+.btn-back {
+    position: absolute;
+    top: 32px;
+    left: 32px;
+    z-index: 10;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(0,0,0,0.6);
+    border: none;
+    color: #fff;
+    font-size: 1rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s, transform 0.1s;
+}
+
+.btn-back:hover {
+    background: rgba(0,0,0,0.8);
+    transform: scale(1.05);
+}
+
+@media (max-width: 576px) {
+    .btn-back {
+        top: 16px;
+        left: 14px;
+    }
+}
+
+
+/* =========================================
+   ALBUM PAGE
+   ========================================= */
+.album-header {
+    display: flex;
+    align-items: flex-end;
+    gap: 24px;
+    margin: -24px -32px 0;
+    padding: 40px 32px 24px;
+    background: linear-gradient(135deg, #2a1a3e 0%, #1a1a2e 50%, var(--sp-bg-base) 100%);
+}
+
+.album-header-cover {
+    width: 232px;
+    height: 232px;
+    border-radius: 4px;
+    object-fit: cover;
+    box-shadow: 0 16px 48px rgba(0,0,0,0.6);
+    flex-shrink: 0;
+}
+
+.album-header-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.album-type {
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: var(--sp-text);
+    letter-spacing: 0.05em;
+}
+
+.album-title {
+    font-size: 2.5rem;
+    font-weight: 900;
+    color: #fff;
+    margin: 8px 0 12px;
+    line-height: 1.1;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.album-meta {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.85rem;
+    color: var(--sp-text-secondary);
+    flex-wrap: wrap;
+}
+
+.album-artist-pic {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.album-artist-link {
+    color: var(--sp-text);
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.album-artist-link:hover {
+    text-decoration: underline;
+}
+
+.album-meta-dot {
+    color: var(--sp-text-secondary);
+}
+
+.album-footer {
+    padding: 32px 0 16px;
+    border-top: 1px solid rgba(255,255,255,0.08);
+    margin-top: 24px;
+}
+
+.album-release {
+    font-size: 0.85rem;
+    color: var(--sp-text-secondary);
+}
+
+@media (max-width: 576px) {
+    .album-header {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: 16px;
+        margin: -16px -14px 0;
+        padding: 24px 14px 16px;
+    }
+    .album-header-cover {
+        width: 200px;
+        height: 200px;
+    }
+    .album-title {
+        font-size: 1.5rem;
+    }
+    .album-meta {
+        justify-content: center;
+    }
+}
+
+/* Artist page responsive */
 @media (max-width: 576px) {
     .artist-banner {
         height: 240px;
