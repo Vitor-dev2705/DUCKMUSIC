@@ -46,6 +46,10 @@
     font-family: 'Poppins', sans-serif;
 }
 
+html {
+    overflow-x: hidden;
+}
+
 body {
     background: var(--sp-bg-base);
     color: var(--sp-text);
@@ -232,6 +236,7 @@ body {
     background: var(--sp-bg-base);
     min-height: 100vh;
     transition: none;
+    overflow-x: hidden;
 }
 
 .header {
@@ -1985,9 +1990,6 @@ body {
     /* ======= CARROSSEL mobile — cards menores ======= */
     .cards-container:not(.quick-access) {
         gap: 12px;
-        margin: 0 -14px;
-        padding-left: 14px;
-        padding-right: 14px;
     }
 
     .cards-container:not(.quick-access) .card {
