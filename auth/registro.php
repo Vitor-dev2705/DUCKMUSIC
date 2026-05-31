@@ -80,7 +80,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 ]);
 
                 // Envia email com codigo
-                enviarCodigoVerificacao($dados['email'], $codigo, $dados['nome_completo']);
+                $enviou = enviarCodigoVerificacao($dados['email'], $codigo, $dados['nome_completo']);
 
                 $_SESSION['verificar_email'] = $dados['email'];
                 session_write_close();

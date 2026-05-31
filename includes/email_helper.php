@@ -12,7 +12,10 @@ function gerarCodigoVerificacao() {
  * Requer env var RESEND_API_KEY.
  */
 function enviarEmail($para, $assunto, $html) {
-    $apiKey = getenv('RESEND_API_KEY');
+    $apiKey = getenv('RESEND_API_KEY')
+        ?: ($_SERVER['RESEND_API_KEY'] ?? '')
+        ?: ($_ENV['RESEND_API_KEY'] ?? '');
+    $apiKey = trim($apiKey);
     if (!$apiKey) return false;
 
     $payload = json_encode([
