@@ -2259,127 +2259,105 @@ body {
         display: none !important;
     }
 
-    /* ======= PLAYER — Spotify mobile mini-player ======= */
+    /* ======= MINI PLAYER — Spotify mobile ======= */
     .player {
-        height: auto;
-        padding: 0;
-        bottom: 56px;
-        left: 8px;
-        right: 8px;
-        border-radius: 8px;
-        flex-direction: row;
-        flex-wrap: wrap;
-        gap: 0;
-        background: #382420;
-        overflow: hidden;
+        position: fixed !important;
+        height: auto !important;
+        width: auto !important;
+        padding: 0 !important;
+        bottom: 60px !important;
+        left: 8px !important;
+        right: 8px !important;
+        border-radius: 8px !important;
+        flex-wrap: wrap !important;
+        flex-direction: row !important;
+        gap: 0 !important;
+        background: #4a2c2a !important;
+        overflow: hidden !important;
+        border-top: none !important;
+        justify-content: stretch !important;
+        align-items: center !important;
     }
 
-    /* app.php uses .player-left, dashboard.php uses .player-top */
-    .player-top,
     .player-left {
-        display: flex;
-        align-items: center;
-        min-width: 0;
-        flex: 1;
-        gap: 10px;
-        overflow: hidden;
-        padding: 8px 8px 8px 8px;
-        width: auto;
-    }
-
-    .player-song {
-        flex: 1;
-        min-width: 0;
+        display: flex !important;
+        align-items: center !important;
+        min-width: 0 !important;
+        gap: 10px !important;
+        padding: 7px 0 7px 7px !important;
+        flex: 1 !important;
+        width: auto !important;
     }
 
     .player-song-img {
-        width: 42px;
-        height: 42px;
-        border-radius: 4px;
-        flex-shrink: 0;
+        width: 40px !important;
+        height: 40px !important;
+        border-radius: 4px !important;
+        flex-shrink: 0 !important;
     }
 
     .player-song-details {
-        overflow: hidden;
-        flex: 1;
-        min-width: 0;
+        flex: 1 !important;
+        min-width: 0 !important;
+        overflow: hidden !important;
     }
 
     .player-song-details h4 {
-        font-size: 0.8rem;
-        font-weight: 600;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        color: #fff;
-        line-height: 1.3;
+        font-size: 0.8rem !important;
+        font-weight: 600 !important;
+        color: #fff !important;
+        line-height: 1.3 !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        margin-bottom: 0 !important;
+    }
+
+    .player-song-details h4:hover {
+        text-decoration: none !important;
     }
 
     .player-song-details p {
-        font-size: 0.68rem;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        color: rgba(255,255,255,0.6);
-        line-height: 1.3;
+        font-size: 0.65rem !important;
+        color: rgba(255,255,255,0.55) !important;
+        line-height: 1.3 !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+    }
+
+    .player-song-details p:hover {
+        text-decoration: none !important;
+        color: rgba(255,255,255,0.55) !important;
     }
 
     .player-fav-btn {
         display: flex !important;
-        flex-shrink: 0;
-        width: 28px;
-        height: 28px;
-        font-size: 0.8rem;
+        flex-shrink: 0 !important;
+        width: 32px !important;
+        height: 32px !important;
+        font-size: 0.85rem !important;
+        color: rgba(255,255,255,0.6) !important;
     }
 
     .player-add-btn {
         display: none !important;
     }
 
+    /* Center com so play/pause inline */
     .player-center {
-        width: auto;
-        flex: 0 0 auto;
-        padding-right: 8px;
-    }
-
-    /* Progress bar full-width at bottom of player card */
-    .progress-container {
-        display: flex;
-        width: 100%;
-        padding: 0;
-        gap: 0;
-        align-items: center;
-        order: 10;
-    }
-
-    .progress-container .time {
-        display: none;
-    }
-
-    .progress-container .volume-controls {
-        display: none;
-    }
-
-    .progress-bar {
-        height: 3px !important;
-        border-radius: 0 0 8px 8px !important;
-        background: rgba(255,255,255,0.2) !important;
-    }
-
-    .progress-bar .progress {
-        border-radius: 0 !important;
-        background: #fff !important;
+        display: flex !important;
+        width: auto !important;
+        max-width: none !important;
+        flex: none !important;
+        padding: 0 4px 0 0 !important;
+        flex-direction: row !important;
+        gap: 0 !important;
+        align-self: center !important;
     }
 
     .player-controls {
-        gap: 0;
-        flex-shrink: 0;
-    }
-
-    .player-controls button {
-        width: 34px;
-        height: 34px;
-        font-size: 1rem;
+        gap: 0 !important;
     }
 
     #btn-shuffle, #btn-repeat,
@@ -2390,13 +2368,53 @@ body {
     #btn-play, #btn-pause {
         width: 36px !important;
         height: 36px !important;
-        font-size: 1.2rem !important;
+        font-size: 1.3rem !important;
         background: transparent !important;
         color: #fff !important;
     }
 
+    /* Progress bar fina na base */
+    .progress-container {
+        display: flex !important;
+        width: 100% !important;
+        padding: 0 !important;
+        gap: 0 !important;
+        order: 10 !important;
+    }
+
+    .progress-container .time {
+        display: none !important;
+    }
+
+    .progress-container .volume-controls {
+        display: none !important;
+    }
+
+    .progress-bar {
+        height: 2px !important;
+        border-radius: 0 0 8px 8px !important;
+        background: rgba(255,255,255,0.15) !important;
+    }
+
+    .progress-bar:hover {
+        height: 2px !important;
+    }
+
+    .progress-bar .progress {
+        border-radius: 0 !important;
+        background: #fff !important;
+    }
+
+    .progress-bar .progress::after {
+        display: none !important;
+    }
+
+    .progress-bar:hover .progress::after {
+        display: none !important;
+    }
+
     .player-right {
-        display: none;
+        display: none !important;
     }
 
     /* Toast above player + nav */
