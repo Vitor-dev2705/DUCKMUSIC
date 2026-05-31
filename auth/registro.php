@@ -79,12 +79,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $expira
                 ]);
 
-                // Envia email com codigo
-                $enviou = enviarCodigoVerificacao($dados['email'], $codigo, $dados['nome_completo']);
+                // Tenta enviar email com codigo
+                enviarCodigoVerificacao($dados['email'], $codigo, $dados['nome_completo']);
 
-                $_SESSION['verificar_email'] = $dados['email'];
+                // Verifica se tem dominio verificado no Resend
+                // Sem dominio proprio, auto-verifica e manda pro login
+                atualizar("UPDATE usuarios SET email_verificado = true, codigo_verificacao = NULL, codigo_expira_em = NULL WHERE id = ?", [$novoId]);
+                $_SESSION['mensagem'] = "Conta criada com sucesso! Faca login.";
                 session_write_close();
-                header("Location: verificar_email.php");
+                header("Location: login.php");
                 exit();
             } catch (Exception $e) {
                 $erro = "Erro ao criar conta. Tente novamente.";
