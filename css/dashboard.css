@@ -1931,8 +1931,9 @@ body {
     /* ======= CARROSSEL — scroll horizontal estilo Spotify ======= */
     .cards-container:not(.quick-access) {
         display: flex;
-        overflow-x: auto;
-        scroll-snap-type: x proximity;
+        overflow-x: scroll;
+        overflow-y: hidden;
+        scroll-snap-type: x mandatory;
         -webkit-overflow-scrolling: touch;
         scrollbar-width: none;
         gap: 14px;
@@ -1940,6 +1941,10 @@ body {
         margin: 0 -14px;
         padding-left: 14px;
         padding-right: 14px;
+        /* CRITICO: impede a pagina de rolar quando arrastar o carrossel */
+        touch-action: pan-x;
+        overscroll-behavior-x: contain;
+        overscroll-behavior-y: none;
     }
 
     .cards-container:not(.quick-access)::-webkit-scrollbar {
@@ -1954,6 +1959,8 @@ body {
         flex-shrink: 0;
         border-radius: 0;
         background: transparent;
+        /* Impede o card de capturar eventos de toque */
+        touch-action: pan-x;
     }
 
     .cards-container:not(.quick-access) .card:hover {
@@ -1965,6 +1972,11 @@ body {
         border-radius: 8px;
         box-shadow: 0 4px 16px rgba(0,0,0,0.5);
         aspect-ratio: 1;
+        pointer-events: none;
+    }
+
+    .cards-container:not(.quick-access) .card-img-wrap .card-img {
+        pointer-events: none;
     }
 
     .cards-container:not(.quick-access) .card h3,

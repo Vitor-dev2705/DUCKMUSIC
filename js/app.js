@@ -199,6 +199,46 @@
 
         // --- Icones de favorito nos cards ---
         updateAllFavIcons();
+
+        // --- Carrossel touch mobile ---
+        initCarouselTouch();
+    }
+
+    /**
+     * Carrossel touch — impede scroll vertical ao arrastar horizontal nos carrosseis
+     */
+    function initCarouselTouch() {
+        var carousels = content.querySelectorAll('.cards-container:not(.quick-access)');
+        carousels.forEach(function(el) {
+            if (el._carouselTouch) return; // ja inicializado
+            el._carouselTouch = true;
+
+            var startX = 0, startY = 0, isHorizontal = null;
+
+            el.addEventListener('touchstart', function(e) {
+                startX = e.touches[0].clientX;
+                startY = e.touches[0].clientY;
+                isHorizontal = null;
+            }, { passive: true });
+
+            el.addEventListener('touchmove', function(e) {
+                if (!e.touches.length) return;
+                var dx = Math.abs(e.touches[0].clientX - startX);
+                var dy = Math.abs(e.touches[0].clientY - startY);
+
+                if (isHorizontal === null && (dx > 5 || dy > 5)) {
+                    isHorizontal = dx > dy;
+                }
+
+                if (isHorizontal) {
+                    e.preventDefault();
+                }
+            }, { passive: false });
+
+            el.addEventListener('touchend', function() {
+                isHorizontal = null;
+            }, { passive: true });
+        });
     }
 
     // =============================================
