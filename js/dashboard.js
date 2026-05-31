@@ -51,7 +51,6 @@ document.addEventListener('DOMContentLoaded', () => {
     initPlaylistLogic();
     loadStoredSong();
     updateAllFavoriteIcons();
-    initCarouselTouch();
 
     // Configura Volume Inicial
     if (audio) {
@@ -59,42 +58,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (volumeSlider) volumeSlider.value = lastVolume;
     }
 });
-
-/**
- * Carrossel touch — impede scroll vertical quando arrastando horizontal
- */
-function initCarouselTouch() {
-    var carousels = document.querySelectorAll('.cards-container:not(.quick-access)');
-    carousels.forEach(function(el) {
-        var startX = 0, startY = 0, isHorizontal = null;
-
-        el.addEventListener('touchstart', function(e) {
-            startX = e.touches[0].clientX;
-            startY = e.touches[0].clientY;
-            isHorizontal = null;
-        }, { passive: true });
-
-        el.addEventListener('touchmove', function(e) {
-            if (!e.touches.length) return;
-            var dx = Math.abs(e.touches[0].clientX - startX);
-            var dy = Math.abs(e.touches[0].clientY - startY);
-
-            // Decidir direcao no primeiro move significativo
-            if (isHorizontal === null && (dx > 5 || dy > 5)) {
-                isHorizontal = dx > dy;
-            }
-
-            // Se horizontal, bloqueia scroll vertical da pagina
-            if (isHorizontal) {
-                e.preventDefault();
-            }
-        }, { passive: false });
-
-        el.addEventListener('touchend', function() {
-            isHorizontal = null;
-        }, { passive: true });
-    });
-}
 
 /**
  * Mapeia todas as musicas presentes na pagina para a fila do player

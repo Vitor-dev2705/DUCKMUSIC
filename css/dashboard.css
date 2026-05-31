@@ -387,15 +387,12 @@ body {
    ========================================= */
 .cards-container:not(.quick-access) {
     display: flex;
-    overflow-x: auto;
+    overflow-x: scroll;
     overflow-y: hidden;
-    scroll-snap-type: x mandatory;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
     gap: 16px;
     padding-bottom: 8px;
-    touch-action: pan-x;
-    overscroll-behavior-x: contain;
 }
 
 .cards-container:not(.quick-access)::-webkit-scrollbar {
@@ -406,7 +403,6 @@ body {
     min-width: 180px;
     max-width: 180px;
     flex-shrink: 0;
-    scroll-snap-align: start;
 }
 
 /* =========================================
