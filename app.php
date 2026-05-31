@@ -119,6 +119,45 @@ $minhas_playlists = buscarTodos("SELECT id, nome FROM playlists WHERE id_usuario
 
 <audio id="audio-element" preload="auto"></audio>
 
+<!-- Player Fullscreen Mobile (Spotify style) -->
+<div class="player-full" id="player-full">
+    <div class="player-full-bg" id="player-full-bg"></div>
+    <div class="player-full-content">
+        <div class="player-full-header">
+            <button class="player-full-close" id="player-full-close"><i class="fas fa-chevron-down"></i></button>
+            <span class="player-full-source" id="player-full-source">Tocando agora</span>
+            <button class="player-full-more"><i class="fas fa-ellipsis"></i></button>
+        </div>
+        <div class="player-full-art">
+            <img src="" id="player-full-img" alt="Capa">
+        </div>
+        <div class="player-full-info">
+            <div class="player-full-text">
+                <h2 id="player-full-title">Selecione uma musica</h2>
+                <p id="player-full-artist">DuckMusic</p>
+            </div>
+            <button class="player-full-fav" id="player-full-fav"><i class="far fa-heart"></i></button>
+        </div>
+        <div class="player-full-progress">
+            <div class="player-full-bar" id="player-full-bar">
+                <div class="player-full-bar-fill" id="player-full-fill"></div>
+                <div class="player-full-bar-thumb" id="player-full-thumb"></div>
+            </div>
+            <div class="player-full-times">
+                <span id="player-full-current">0:00</span>
+                <span id="player-full-duration">0:00</span>
+            </div>
+        </div>
+        <div class="player-full-controls">
+            <button id="pf-shuffle"><i class="fas fa-shuffle"></i></button>
+            <button id="pf-prev"><i class="fas fa-backward-step"></i></button>
+            <button class="pf-play-btn" id="pf-play"><i class="fas fa-play"></i></button>
+            <button id="pf-next"><i class="fas fa-forward-step"></i></button>
+            <button id="pf-repeat"><i class="fas fa-repeat"></i></button>
+        </div>
+    </div>
+</div>
+
 <div id="modalCriarPlaylist" class="modal">
     <div class="modal-content">
         <div class="modal-header">

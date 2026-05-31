@@ -309,6 +309,22 @@
         // Favorito
         setFavIcon(playerFavBtn, favIds.has(String(song.id)));
 
+        // Sync fullscreen
+        var pf = document.getElementById('player-full');
+        if (pf && pf.classList.contains('active')) {
+            var pfImg = document.getElementById('player-full-img');
+            var pfBg = document.getElementById('player-full-bg');
+            var pfTitle = document.getElementById('player-full-title');
+            var pfArtist = document.getElementById('player-full-artist');
+            var pfFav = document.getElementById('player-full-fav');
+            var capa = song.capa || '/assets/img/capa-padrao.svg';
+            if (pfImg) pfImg.src = capa;
+            if (pfBg) pfBg.style.backgroundImage = 'url(' + capa + ')';
+            if (pfTitle) pfTitle.textContent = song.titulo;
+            if (pfArtist) pfArtist.textContent = song.artista;
+            if (pfFav) { pfFav.setAttribute('data-id', song.id); setFavIcon(pfFav, favIds.has(String(song.id))); }
+        }
+
         // Media Session
         setMediaSession(song);
 
@@ -627,10 +643,114 @@
         btnShuffle.addEventListener('click', toggleShuffle);
         btnRepeat.addEventListener('click', toggleRepeat);
 
+        // === PLAYER FULLSCREEN (mobile) ===
+        var pf = document.getElementById('player-full');
+        var pfImg = document.getElementById('player-full-img');
+        var pfBg = document.getElementById('player-full-bg');
+        var pfTitle = document.getElementById('player-full-title');
+        var pfArtist = document.getElementById('player-full-artist');
+        var pfFav = document.getElementById('player-full-fav');
+        var pfClose = document.getElementById('player-full-close');
+        var pfPlay = document.getElementById('pf-play');
+        var pfPrev = document.getElementById('pf-prev');
+        var pfNext = document.getElementById('pf-next');
+        var pfShuffle = document.getElementById('pf-shuffle');
+        var pfRepeat = document.getElementById('pf-repeat');
+        var pfFill = document.getElementById('player-full-fill');
+        var pfThumb = document.getElementById('player-full-thumb');
+        var pfBar = document.getElementById('player-full-bar');
+        var pfCur = document.getElementById('player-full-current');
+        var pfDur = document.getElementById('player-full-duration');
+
+        function isMobile() { return window.innerWidth <= 576; }
+
+        function syncFullscreen() {
+            if (!pf) return;
+            var song = queue[curIdx];
+            if (!song) return;
+            var capa = song.capa || playerImg.src || '/assets/img/capa-padrao.svg';
+            pfImg.src = capa;
+            pfBg.style.backgroundImage = 'url(' + capa + ')';
+            pfTitle.textContent = song.titulo || playerTitle.textContent;
+            pfArtist.textContent = song.artista || playerArtist.textContent;
+            if (pfFav) pfFav.setAttribute('data-id', song.id || '');
+            setFavIcon(pfFav, favIds.has(String(song.id)));
+        }
+
+        function syncFullscreenPlayState() {
+            if (!pfPlay) return;
+            pfPlay.innerHTML = audio.paused
+                ? '<i class="fas fa-play"></i>'
+                : '<i class="fas fa-pause"></i>';
+        }
+
+        function openFullscreen() {
+            if (!pf || !isMobile()) return;
+            syncFullscreen();
+            syncFullscreenPlayState();
+            pf.classList.add('active', 'sliding-up');
+            pf.classList.remove('sliding-down');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeFullscreen() {
+            if (!pf) return;
+            pf.classList.add('sliding-down');
+            pf.classList.remove('sliding-up');
+            setTimeout(function() {
+                pf.classList.remove('active', 'sliding-down');
+                document.body.style.overflow = '';
+            }, 300);
+        }
+
+        // Abrir fullscreen ao clicar no mini player (mobile)
+        player.addEventListener('click', function(e) {
+            if (!isMobile()) return;
+            // Nao abrir se clicou em botao de controle
+            if (e.target.closest('button') || e.target.closest('.progress-bar')) return;
+            if (curIdx < 0) return;
+            openFullscreen();
+        });
+
+        if (pfClose) pfClose.addEventListener('click', closeFullscreen);
+
+        // Controles do fullscreen
+        if (pfPlay) pfPlay.addEventListener('click', function() {
+            audio.paused ? audio.play() : audio.pause();
+        });
+        if (pfPrev) pfPrev.addEventListener('click', playPrev);
+        if (pfNext) pfNext.addEventListener('click', playNext);
+        if (pfShuffle) pfShuffle.addEventListener('click', function() {
+            toggleShuffle();
+            pfShuffle.style.color = shuffle ? '#1db954' : '';
+        });
+        if (pfRepeat) pfRepeat.addEventListener('click', function() {
+            toggleRepeat();
+            pfRepeat.style.color = repeat > 0 ? '#1db954' : '';
+        });
+
+        // Favoritar no fullscreen
+        if (pfFav) pfFav.addEventListener('click', function() {
+            if (playerFavBtn) playerFavBtn.click();
+            setTimeout(function() {
+                var id = pfFav.getAttribute('data-id');
+                setFavIcon(pfFav, favIds.has(String(id)));
+            }, 300);
+        });
+
+        // Seek na barra do fullscreen
+        if (pfBar) pfBar.addEventListener('click', function(e) {
+            if (!audio.duration || !isFinite(audio.duration)) return;
+            var rect = pfBar.getBoundingClientRect();
+            var pct = (e.clientX - rect.left) / rect.width;
+            audio.currentTime = pct * audio.duration;
+        });
+
         audio.addEventListener('play', function () {
             btnPlay.style.display = 'none';
             btnPause.style.display = 'inline-flex';
             player.classList.add('playing');
+            syncFullscreenPlayState();
             if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'playing';
         });
 
@@ -638,6 +758,7 @@
             btnPlay.style.display = 'inline-flex';
             btnPause.style.display = 'none';
             player.classList.remove('playing');
+            syncFullscreenPlayState();
             if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'paused';
         });
 
@@ -647,12 +768,18 @@
             progressEl.style.width = pct + '%';
             curTimeEl.textContent = fmt(audio.currentTime);
             durEl.textContent = fmt(audio.duration);
+            // Fullscreen sync
+            if (pfFill) pfFill.style.width = pct + '%';
+            if (pfThumb) pfThumb.style.left = pct + '%';
+            if (pfCur) pfCur.textContent = fmt(audio.currentTime);
+            if (pfDur) pfDur.textContent = fmt(audio.duration);
         });
 
         audio.addEventListener('ended', playNext);
 
         audio.addEventListener('loadedmetadata', function () {
             durEl.textContent = fmt(audio.duration);
+            if (pfDur) pfDur.textContent = fmt(audio.duration);
             syncPositionState();
         });
 
