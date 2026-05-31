@@ -205,14 +205,15 @@
     }
 
     /**
-     * Carrossel touch — impede scroll vertical ao arrastar horizontal nos carrosseis
+     * Carrossel — touch mobile + drag desktop
      */
     function initCarouselTouch() {
         var carousels = content.querySelectorAll('.cards-container:not(.quick-access)');
         carousels.forEach(function(el) {
-            if (el._carouselTouch) return; // ja inicializado
-            el._carouselTouch = true;
+            if (el._carouselInit) return;
+            el._carouselInit = true;
 
+            // --- TOUCH: impede scroll vertical ao arrastar horizontal ---
             var startX = 0, startY = 0, isHorizontal = null;
 
             el.addEventListener('touchstart', function(e) {
@@ -225,19 +226,58 @@
                 if (!e.touches.length) return;
                 var dx = Math.abs(e.touches[0].clientX - startX);
                 var dy = Math.abs(e.touches[0].clientY - startY);
-
                 if (isHorizontal === null && (dx > 5 || dy > 5)) {
                     isHorizontal = dx > dy;
                 }
-
-                if (isHorizontal) {
-                    e.preventDefault();
-                }
+                if (isHorizontal) e.preventDefault();
             }, { passive: false });
 
             el.addEventListener('touchend', function() {
                 isHorizontal = null;
             }, { passive: true });
+
+            // --- MOUSE DRAG: arrastar carrossel no desktop ---
+            var dragging = false, dragStartX = 0, scrollStart = 0, moved = false;
+
+            el.addEventListener('mousedown', function(e) {
+                dragging = true;
+                moved = false;
+                dragStartX = e.pageX;
+                scrollStart = el.scrollLeft;
+                el.style.cursor = 'grabbing';
+                el.style.userSelect = 'none';
+            });
+
+            el.addEventListener('mousemove', function(e) {
+                if (!dragging) return;
+                e.preventDefault();
+                var walk = e.pageX - dragStartX;
+                if (Math.abs(walk) > 3) moved = true;
+                el.scrollLeft = scrollStart - walk;
+            });
+
+            el.addEventListener('mouseup', function() {
+                dragging = false;
+                el.style.cursor = 'grab';
+                el.style.userSelect = '';
+            });
+
+            el.addEventListener('mouseleave', function() {
+                dragging = false;
+                el.style.cursor = 'grab';
+                el.style.userSelect = '';
+            });
+
+            // Impede clique no card quando terminou um drag
+            el.addEventListener('click', function(e) {
+                if (moved) {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    moved = false;
+                }
+            }, true);
+
+            el.style.cursor = 'grab';
         });
     }
 

@@ -377,6 +377,106 @@ body {
     padding-bottom: 0;
 }
 
+/* =========================================
+   CARROSSEL — Spotify horizontal scroll (todas as telas)
+   ========================================= */
+.cards-container:not(.quick-access) {
+    display: flex;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    gap: 16px;
+    padding-bottom: 8px;
+    touch-action: pan-x;
+    overscroll-behavior-x: contain;
+}
+
+.cards-container:not(.quick-access)::-webkit-scrollbar {
+    display: none;
+}
+
+.cards-container:not(.quick-access) .card {
+    min-width: 180px;
+    max-width: 180px;
+    flex-shrink: 0;
+    scroll-snap-align: start;
+}
+
+/* =========================================
+   QUICK ACCESS — Spotify mini-cards grid (desktop)
+   ========================================= */
+.quick-access {
+    display: grid !important;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    overflow-x: visible;
+}
+
+.quick-access .card {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    min-width: auto;
+    max-width: none;
+    padding: 0;
+    gap: 0;
+    background: rgba(255,255,255,0.07);
+    border-radius: 4px;
+    overflow: hidden;
+    height: 64px;
+    transition: background 0.2s;
+}
+
+.quick-access .card:hover {
+    background: rgba(255,255,255,0.15);
+}
+
+.quick-access .card-img-wrap {
+    width: 64px;
+    height: 64px;
+    min-width: 64px;
+    margin: 0;
+    border-radius: 4px 0 0 4px;
+    aspect-ratio: auto;
+    box-shadow: 4px 0 8px rgba(0,0,0,0.1);
+}
+
+.quick-access .card-content {
+    flex: 1;
+    min-width: 0;
+    min-height: auto;
+    padding: 0 14px;
+}
+
+.quick-access .card h3,
+.quick-access .card .card-title {
+    font-size: 0.85rem;
+    font-weight: 700;
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    white-space: normal;
+    color: #fff;
+}
+
+.quick-access .card p,
+.quick-access .card .card-subtitle {
+    display: none;
+}
+
+.quick-access .card-play-btn {
+    display: none;
+}
+
+.quick-access .btn-fav,
+.quick-access .btn-add-playlist {
+    display: none;
+}
+
 
 /* =========================================
    CARD - Spotify Style
@@ -1858,157 +1958,60 @@ body {
         display: none;
     }
 
-    /* ======= QUICK ACCESS — mini cards grid Spotify ======= */
+    /* ======= QUICK ACCESS mobile — 2 colunas ======= */
     .quick-access {
-        display: grid !important;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 8px;
-        overflow-x: visible !important;
-        scroll-snap-type: none !important;
-        margin: 0 !important;
-        padding: 0 !important;
+        grid-template-columns: repeat(2, 1fr) !important;
     }
 
     .quick-access .card {
-        display: flex;
-        flex-direction: row;
-        align-items: center;
-        min-width: auto !important;
-        max-width: none !important;
-        padding: 0;
-        gap: 0;
-        background: rgba(255,255,255,0.07);
-        border-radius: 4px;
-        overflow: hidden;
         height: 56px;
-    }
-
-    .quick-access .card:active {
-        background: rgba(255,255,255,0.12);
     }
 
     .quick-access .card-img-wrap {
         width: 56px;
         height: 56px;
         min-width: 56px;
-        margin: 0;
-        border-radius: 4px 0 0 4px;
-        aspect-ratio: auto;
-        box-shadow: 4px 0 8px rgba(0,0,0,0.15);
     }
 
     .quick-access .card-content {
-        flex: 1;
-        min-width: 0;
-        min-height: auto;
         padding: 0 10px;
     }
 
     .quick-access .card h3,
     .quick-access .card .card-title {
         font-size: 0.75rem;
-        font-weight: 700;
-        line-height: 1.3;
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
-        white-space: normal;
-        color: #fff;
     }
 
-    .quick-access .card p,
-    .quick-access .card .card-subtitle {
-        display: none;
-    }
-
-    .quick-access .card-play-btn,
-    .quick-access .btn-fav,
-    .quick-access .btn-add-playlist {
-        display: none !important;
-    }
-
-    /* ======= CARROSSEL — scroll horizontal estilo Spotify ======= */
+    /* ======= CARROSSEL mobile — cards menores ======= */
     .cards-container:not(.quick-access) {
-        display: flex;
-        overflow-x: scroll;
-        overflow-y: hidden;
-        scroll-snap-type: x mandatory;
-        -webkit-overflow-scrolling: touch;
-        scrollbar-width: none;
-        gap: 14px;
-        padding-bottom: 4px;
+        gap: 12px;
         margin: 0 -14px;
         padding-left: 14px;
         padding-right: 14px;
-        /* CRITICO: impede a pagina de rolar quando arrastar o carrossel */
-        touch-action: pan-x;
-        overscroll-behavior-x: contain;
-        overscroll-behavior-y: none;
-    }
-
-    .cards-container:not(.quick-access)::-webkit-scrollbar {
-        display: none;
     }
 
     .cards-container:not(.quick-access) .card {
-        min-width: 150px;
-        max-width: 150px;
+        min-width: 140px;
+        max-width: 140px;
         padding: 0;
-        scroll-snap-align: start;
-        flex-shrink: 0;
-        border-radius: 0;
         background: transparent;
-        /* Impede o card de capturar eventos de toque */
-        touch-action: pan-x;
     }
 
     .cards-container:not(.quick-access) .card:hover {
         background: transparent;
     }
 
-    .cards-container:not(.quick-access) .card-img-wrap {
-        margin-bottom: 10px;
-        border-radius: 8px;
-        box-shadow: 0 4px 16px rgba(0,0,0,0.5);
-        aspect-ratio: 1;
-        pointer-events: none;
-    }
-
-    .cards-container:not(.quick-access) .card-img-wrap .card-img {
-        pointer-events: none;
-    }
-
     .cards-container:not(.quick-access) .card h3,
     .cards-container:not(.quick-access) .card .card-title {
         font-size: 0.82rem;
-        font-weight: 600;
-        line-height: 1.3;
-        white-space: normal;
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
     }
 
     .cards-container:not(.quick-access) .card p,
     .cards-container:not(.quick-access) .card .card-subtitle {
         font-size: 0.72rem;
-        color: var(--sp-text-subdued);
-        margin-top: 2px;
-    }
-
-    .cards-container:not(.quick-access) .card-content {
-        min-height: auto;
-        padding: 0 2px;
     }
 
     .cards-container:not(.quick-access) .card-play-btn {
-        display: none !important;
-    }
-
-    .cards-container:not(.quick-access) .btn-fav,
-    .cards-container:not(.quick-access) .btn-add-playlist {
         display: none !important;
     }
 
