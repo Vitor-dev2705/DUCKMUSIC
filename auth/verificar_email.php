@@ -61,7 +61,7 @@ $emailMascarado = preg_replace('/^(.{2})(.*)(@.*)$/', '$1***$3', $email);
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Verificar E-mail - DuckMusic</title>
     <meta name="theme-color" content="#121212">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">

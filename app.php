@@ -30,7 +30,7 @@ $minhas_playlists = buscarTodos("SELECT id, nome FROM playlists WHERE id_usuario
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>DuckMusic</title>
     <meta name="theme-color" content="#121212">
     <meta name="description" content="DuckMusic - Sua plataforma de streaming de musica">
