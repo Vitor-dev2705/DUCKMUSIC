@@ -63,28 +63,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if (empty($erro)) {
             $senha_hash = password_hash($senha, PASSWORD_DEFAULT);
-            $codigo = gerarCodigoVerificacao();
-            $expira = date('Y-m-d H:i:s', time() + 900); // 15 min
 
             try {
-                $novoId = inserir("INSERT INTO usuarios (nome_completo, nome_usuario, email, senha, data_nascimento, telefone, email_verificado, codigo_verificacao, codigo_expira_em)
-                         VALUES (?, ?, ?, ?, ?, ?, false, ?, ?)", [
+                $novoId = inserir("INSERT INTO usuarios (nome_completo, nome_usuario, email, senha, data_nascimento, telefone, email_verificado)
+                         VALUES (?, ?, ?, ?, ?, ?, true)", [
                     $dados['nome_completo'],
                     $dados['nome_usuario'],
                     $dados['email'],
                     $senha_hash,
                     $dados['data_nascimento'],
-                    $dados['telefone'],
-                    $codigo,
-                    $expira
+                    $dados['telefone']
                 ]);
 
-                // Tenta enviar email com codigo
-                enviarCodigoVerificacao($dados['email'], $codigo, $dados['nome_completo']);
-
-                // Verifica se tem dominio verificado no Resend
-                // Sem dominio proprio, auto-verifica e manda pro login
-                atualizar("UPDATE usuarios SET email_verificado = true, codigo_verificacao = NULL, codigo_expira_em = NULL WHERE id = ?", [$novoId]);
                 $_SESSION['mensagem'] = "Conta criada com sucesso! Faca login.";
                 session_write_close();
                 header("Location: login.php");
