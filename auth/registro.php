@@ -2,6 +2,8 @@
 require_once __DIR__ . '/../includes/init.php';
 require_once __DIR__ . '/../includes/csrf_helper.php';
 require_once __DIR__ . '/../includes/email_helper.php';
+require_once __DIR__ . '/../includes/rate_limit.php';
+require_once __DIR__ . '/../includes/validation.php';
 
 $erro = '';
 $dados = [
@@ -17,70 +19,77 @@ $dataMaxima = $dataAtual->modify('-13 years')->format('Y-m-d');
 $dataMinima = (new DateTime())->modify('-150 years')->format('Y-m-d');
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $dados = [
-        'nome_completo'   => trim($_POST['nome_completo'] ?? ''),
-        'nome_usuario'    => trim($_POST['nome_usuario'] ?? ''),
-        'email'           => strtolower(trim($_POST['email'] ?? '')),
-        'data_nascimento' => $_POST['data_nascimento'] ?? '',
-        'telefone'        => preg_replace('/\D/', '', $_POST['telefone'] ?? '')
-    ];
+    // Verifica CSRF token
+    if (!verificarTokenCSRF($_POST['csrf_token'] ?? '')) {
+        $erro = "Token CSRF inválido.";
+    } else {
+        $dados = [
+            'nome_completo'   => trim($_POST['nome_completo'] ?? ''),
+            'nome_usuario'    => trim($_POST['nome_usuario'] ?? ''),
+            'email'           => strtolower(trim($_POST['email'] ?? '')),
+            'data_nascimento' => $_POST['data_nascimento'] ?? '',
+            'telefone'        => preg_replace('/\D/', '', $_POST['telefone'] ?? '')
+        ];
 
-    $senha = $_POST['senha'] ?? '';
-    $confirmar_senha = $_POST['confirmar_senha'] ?? '';
+        $senha = $_POST['senha'] ?? '';
+        $confirmar_senha = $_POST['confirmar_senha'] ?? '';
 
-    // Validacoes
-    if (empty($dados['nome_completo'])) {
-        $erro = "Nome completo e obrigatorio.";
-    } elseif (strlen($dados['nome_usuario']) < 4) {
-        $erro = "Nome de usuario deve ter pelo menos 4 caracteres.";
-    } elseif (!preg_match('/^[a-zA-Z0-9_]+$/', $dados['nome_usuario'])) {
-        $erro = "Nome de usuario pode conter apenas letras, numeros e underscore.";
-    } elseif (!filter_var($dados['email'], FILTER_VALIDATE_EMAIL)) {
-        $erro = "E-mail invalido.";
-    } elseif (strlen($senha) < 8) {
-        $erro = "A senha deve ter pelo menos 8 caracteres.";
-    } elseif (!preg_match('/^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/', $senha)) {
-        $erro = "A senha precisa conter 1 maiuscula, 1 numero e 1 caractere especial.";
-    } elseif ($senha !== $confirmar_senha) {
-        $erro = "As senhas nao coincidem.";
-    } elseif (!preg_match('/^\d{10,11}$/', $dados['telefone'])) {
-        $erro = "Telefone invalido. Use apenas numeros (DDD + numero).";
-    } elseif (!validarDataNascimento($dados['data_nascimento'])) {
-        $erro = "Data de nascimento invalida. Idade minima: 13 anos.";
-    }
+        // Validacoes
+        if (empty($dados['nome_completo'])) {
+            $erro = "Nome completo e obrigatorio.";
+        } elseif (strlen($dados['nome_usuario']) < 4) {
+            $erro = "Nome de usuario deve ter pelo menos 4 caracteres.";
+        } elseif (!preg_match('/^[a-zA-Z0-9_ ]+$/', $dados['nome_usuario'])) {
+        } elseif (!filter_var($dados['email'], FILTER_VALIDATE_EMAIL)) {
+            $erro = "E-mail invalido.";
+        } else {
+            $valSenha = validarSenha($senha, $dados['nome_usuario']);
+            if (!$valSenha['ok']) {
+                $erro = $valSenha['msg'];
+            } elseif ($senha !== $confirmar_senha) {
+                $erro = "As senhas nao coincidem.";
+            }
+        }
 
-    if (empty($erro)) {
-        $userExiste = buscarUm("SELECT id FROM usuarios WHERE LOWER(nome_usuario) = LOWER(?)", [$dados['nome_usuario']]);
-        $emailExiste = buscarUm("SELECT id FROM usuarios WHERE LOWER(email) = LOWER(?)", [$dados['email']]);
-
-        if ($userExiste && $emailExiste) {
-            $erro = "Nome de usuario e e-mail ja estao em uso.";
-        } elseif ($userExiste) {
-            $erro = "Nome de usuario ja esta em uso. Escolha outro.";
-        } elseif ($emailExiste) {
-            $erro = "E-mail ja esta cadastrado. Use outro ou faca login.";
+        if (empty($erro) && !preg_match('/^\d{10,11}$/', $dados['telefone'])) {
+            $erro = "Telefone invalido. Use apenas numeros (DDD + numero).";
+        } elseif (empty($erro) && !validarDataNascimento($dados['data_nascimento'])) {
+            $erro = "Data de nascimento invalida. Idade minima: 13 anos.";
         }
 
         if (empty($erro)) {
-            $senha_hash = password_hash($senha, PASSWORD_DEFAULT);
+            $userExiste = buscarUm("SELECT id FROM usuarios WHERE LOWER(nome_usuario) = LOWER(?)", [$dados['nome_usuario']]);
+            $emailExiste = buscarUm("SELECT id FROM usuarios WHERE LOWER(email) = LOWER(?)", [$dados['email']]);
 
-            try {
-                $novoId = inserir("INSERT INTO usuarios (nome_completo, nome_usuario, email, senha, data_nascimento, telefone, email_verificado)
-                         VALUES (?, ?, ?, ?, ?, ?, true)", [
-                    $dados['nome_completo'],
-                    $dados['nome_usuario'],
-                    $dados['email'],
-                    $senha_hash,
-                    $dados['data_nascimento'],
-                    $dados['telefone']
-                ]);
+            if ($userExiste && $emailExiste) {
+                $erro = "Nome de usuario e e-mail ja estao em uso.";
+            } elseif ($userExiste) {
+                $erro = "Nome de usuario ja esta em uso. Escolha outro.";
+            } elseif ($emailExiste) {
+                $erro = "E-mail ja esta cadastrado. Use outro ou faca login.";
+            }
 
-                $_SESSION['mensagem'] = "Conta criada com sucesso! Faca login.";
-                session_write_close();
-                header("Location: login.php");
-                exit();
-            } catch (Exception $e) {
-                $erro = "Erro ao criar conta. Tente novamente.";
+            if (empty($erro)) {
+                $senha_hash = password_hash($senha, PASSWORD_DEFAULT);
+
+                try {
+                    $novoId = inserir("INSERT INTO usuarios (nome_completo, nome_usuario, email, senha, data_nascimento, telefone, email_verificado)
+                             VALUES (?, ?, ?, ?, ?, ?, true)", [
+                        $dados['nome_completo'],
+                        $dados['nome_usuario'],
+                        $dados['email'],
+                        $senha_hash,
+                        $dados['data_nascimento'],
+                        $dados['telefone']
+                    ]);
+
+                    $_SESSION['mensagem'] = "Conta criada com sucesso! Faca login.";
+                    session_write_close();
+                    header("Location: login.php");
+                    exit();
+                } catch (Exception $e) {
+                    $erro = "Erro ao criar conta. Tente novamente.";
+                }
             }
         }
     }
@@ -105,10 +114,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
 
         <?php if ($erro): ?>
-            <div class="notification error"><?= htmlsafe($erro) ?></div>
-        <?php endif; ?>
+            <div class="notification error" role="alert" aria-live="polite"><?= htmlsafe($erro) ?></div>
+<?php endif; ?>
 
         <form method="POST" id="registroForm">
+    <input type="hidden" name="csrf_token" value="<?= gerarTokenCSRF() ?>" />
             <div class="form-group">
                 <input type="text" class="form-control" name="nome_completo"
                     placeholder="Nome completo" required
@@ -117,7 +127,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             <div class="form-group">
                 <input type="text" class="form-control" name="nome_usuario"
-                    placeholder="Nome de usuario" required autocapitalize="none"
+                    placeholder="Nome de usuário (pode conter espaços)" required autocapitalize="none"
+                    title="Nome de usuário pode conter letras, números, underscore e espaços"
                     value="<?= htmlsafe($dados['nome_usuario']) ?>">
             </div>
 

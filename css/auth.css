@@ -81,6 +81,26 @@ body {
     transition: border-color 0.2s;
 }
 
+/* Date picker styling */
+input[type="date"] {
+    background: var(--lighter-dark);
+    color: var(--white);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    padding: 12px 14px;
+    font-family: 'Poppins', sans-serif;
+    font-size: 15px;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+}
+
+/* Calendar icon (optional) */
+input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(1) hue-rotate(180deg);
+    cursor: pointer;
+}
+
 .form-control:focus {
     outline: none;
     border-color: var(--sp-green);
