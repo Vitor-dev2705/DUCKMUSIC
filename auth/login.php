@@ -59,40 +59,71 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#0a0a0a">
     <title>Login - DuckMusic</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <meta name="description" content="Faça login na sua conta DuckMusic e ouça suas músicas favoritas.">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/css/auth.css">
 </head>
 <body>
+    <!-- Floating Particles -->
+    <div class="particles">
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+    </div>
+
     <div class="auth-container">
         <div class="logo">
             <i class="fas fa-compact-disc"></i>
             <h1>DuckMusic</h1>
+            <p>Bem-vindo de volta</p>
         </div>
+
         <?php if (isset($_SESSION['mensagem'])): ?>
             <div class="notification success"><?= htmlsafe($_SESSION['mensagem']) ?></div>
             <?php unset($_SESSION['mensagem']); ?>
         <?php endif; ?>
+
         <?php if ($erro): ?>
             <div class="notification error" role="alert" aria-live="polite"><?= htmlsafe($erro) ?></div>
         <?php endif; ?>
-        <form method="POST" id="loginForm">
+
+        <form method="POST" id="loginForm" autocomplete="on">
             <input type="hidden" name="csrf_token" value="<?= gerarTokenCSRF() ?>" />
+
             <div class="form-group">
-                <input type="text" class="form-control" name="login" placeholder="E-mail ou nome de usuário" required value="<?= isset($_POST['login']) ? htmlsafe($_POST['login']) : '' ?>">
+                <input type="text" class="form-control" id="login" name="login"
+                    placeholder="E-mail ou nome de usuário" required autocomplete="username"
+                    value="<?= isset($_POST['login']) ? htmlsafe($_POST['login']) : '' ?>">
             </div>
+
             <div class="form-group">
-                <input type="password" class="form-control" id="senha" name="senha" placeholder="Senha" required>
+                <input type="password" class="form-control" id="senha" name="senha"
+                    placeholder="Senha" required autocomplete="current-password">
                 <i class="fas fa-eye toggle-password" id="toggleIcon" onclick="togglePassword()"></i>
             </div>
-            <button type="submit" class="btn" id="loginBtn">Entrar</button>
+
+            <button type="submit" class="btn" id="loginBtn">
+                <span>Entrar</span>
+            </button>
         </form>
+
         <div class="auth-links">
-            <a href="registro.php">Criar uma conta</a> |
+            <a href="registro.php">Criar uma conta</a>
+            <span style="margin: 0 8px; opacity:0.3;">•</span>
             <a href="esqueci_senha.php">Esqueci minha senha</a>
         </div>
     </div>
+
     <script>
         function togglePassword() {
             var s = document.getElementById('senha');
@@ -108,7 +139,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         document.getElementById('loginForm').addEventListener('submit', function() {
             var btn = document.getElementById('loginBtn');
             if (!this.checkValidity()) return;
-            btn.innerHTML = 'Validando... <span class="spinner"></span>';
+            btn.innerHTML = 'Entrando… <span class="spinner"></span>';
             btn.style.pointerEvents = 'none';
         });
     </script>
