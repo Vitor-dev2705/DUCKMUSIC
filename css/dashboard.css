@@ -5,21 +5,21 @@
 :root {
     --sp-green: #1db954;
     --sp-green-light: #1ed760;
-    --sp-black: #000000;
-    --sp-bg-base: #121212;
-    --sp-bg-elevated: #181818;
-    --sp-bg-highlight: #282828;
-    --sp-bg-tinted: #2a2a2a;
+    --sp-black: #050505;
+    --sp-bg-base: #0a0a0a;
+    --sp-bg-elevated: rgba(18, 18, 18, 0.6);
+    --sp-bg-highlight: rgba(40, 40, 40, 0.8);
+    --sp-bg-tinted: rgba(42, 42, 42, 0.6);
     --sp-text: #ffffff;
-    --sp-text-secondary: #b3b3b3;
+    --sp-text-secondary: #a0a0a0;
     --sp-text-subdued: #6a6a6a;
-    --sp-danger: #e74c3c;
+    --sp-danger: #ff3b30;
     --sidebar-width: 280px;
-    --player-height: 90px;
-    --radius-sm: 4px;
-    --radius-md: 8px;
-    --radius-lg: 12px;
-    --transition: 0.2s ease;
+    --player-height: 95px;
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 20px;
+    --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
     /* Legacy aliases (referenced by JS error fallback, toast, etc.) */
     --color-primary: var(--sp-green);
@@ -27,16 +27,16 @@
     --color-text-muted: var(--sp-text-secondary);
     --color-background-dark: var(--sp-bg-base);
     --color-background-medium: var(--sp-bg-elevated);
-    --color-border: var(--sp-bg-highlight);
+    --color-border: rgba(255, 255, 255, 0.05);
     --color-danger: var(--sp-danger);
     --color-secondary: var(--sp-green-light);
-    --color-success: #1db954;
+    --color-success: #1ed760;
     --color-info: #3498db;
     --color-background-light: var(--sp-bg-highlight);
     --border-radius-base: var(--radius-md);
     --border-radius-large: var(--radius-lg);
-    --shadow-elevation-1: 0 4px 12px rgba(0, 0, 0, 0.5);
-    --transition-speed: 0.2s;
+    --shadow-elevation-1: 0 8px 30px rgba(0, 0, 0, 0.5);
+    --transition-speed: 0.3s;
 }
 
 * {
@@ -61,6 +61,34 @@ body {
     line-height: 1.5;
     touch-action: manipulation;
     -ms-touch-action: manipulation;
+    position: relative;
+}
+
+/* Premium Animated Background */
+body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+        radial-gradient(ellipse 800px 800px at 20% 20%, rgba(29, 185, 84, 0.08) 0%, transparent 70%),
+        radial-gradient(ellipse 600px 600px at 80% 80%, rgba(30, 215, 96, 0.06) 0%, transparent 70%);
+    animation: meshMove 15s ease-in-out infinite alternate;
+    z-index: -2;
+    pointer-events: none;
+}
+
+@keyframes meshMove {
+    0%   { transform: translate(0, 0) scale(1); }
+    100% { transform: translate(30px, -20px) scale(1.05); }
+}
+
+body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+    z-index: -2;
+    pointer-events: none;
 }
 
 /* Custom Scrollbar */
@@ -75,7 +103,10 @@ body {
    ========================================= */
 .sidebar {
     width: var(--sidebar-width);
-    background: var(--sp-black);
+    background: rgba(5, 5, 5, 0.6);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-right: 1px solid var(--color-border);
     height: 100vh;
     position: fixed;
     display: flex;
@@ -88,25 +119,27 @@ body {
 .logo {
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 20px 24px 8px;
-    font-size: 1.35rem;
+    gap: 12px;
+    padding: 24px 24px 16px;
+    font-size: 1.4rem;
     font-weight: 700;
     color: var(--sp-text);
-    text-shadow: none;
     margin-bottom: 0;
 }
 
 .logo i {
-    font-size: 1.5rem;
-    color: var(--sp-green);
+    font-size: 1.8rem;
+    background: linear-gradient(135deg, var(--sp-green), var(--sp-green-light));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 0 10px rgba(29, 185, 84, 0.4));
 }
 
 .menu {
     display: flex;
     flex-direction: column;
-    gap: 2px;
-    padding: 12px 12px 16px;
+    gap: 4px;
+    padding: 12px 16px 16px;
     margin-bottom: 0;
 }
 
@@ -114,27 +147,29 @@ body {
     display: flex;
     align-items: center;
     gap: 16px;
-    padding: 10px 12px;
+    padding: 12px 16px;
     border-radius: var(--radius-md);
     text-decoration: none;
     color: var(--sp-text-secondary);
-    transition: color var(--transition);
+    transition: all var(--transition);
     font-size: 0.95rem;
     font-weight: 500;
-    background: none;
+    background: transparent;
 }
 
 .menu-item:hover {
     color: var(--sp-text);
-    background: none;
-    transform: none;
+    background: rgba(255, 255, 255, 0.05);
 }
 
 .menu-item.active {
-    color: var(--sp-text);
+    color: var(--sp-green-light);
     font-weight: 700;
-    background: none;
-    box-shadow: none;
+    background: rgba(29, 185, 84, 0.08);
+}
+
+.menu-item.active i {
+    color: var(--sp-green-light);
 }
 
 .menu-item i {
@@ -415,7 +450,7 @@ body {
 .quick-access {
     display: grid !important;
     grid-template-columns: repeat(4, 1fr);
-    gap: 8px;
+    gap: 12px;
     overflow-x: visible;
 }
 
@@ -427,15 +462,20 @@ body {
     max-width: none;
     padding: 0;
     gap: 0;
-    background: rgba(255,255,255,0.07);
-    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.02);
+    border-radius: 6px;
     overflow: hidden;
     height: 64px;
-    transition: background 0.2s;
+    transition: all 0.2s;
 }
 
 .quick-access .card:hover {
-    background: rgba(255,255,255,0.15);
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateY(-2px);
+    border-color: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
 }
 
 .quick-access .card-img-wrap {
@@ -488,23 +528,23 @@ body {
    ========================================= */
 .card {
     position: relative;
-    background: var(--sp-bg-elevated);
+    background: rgba(20, 20, 20, 0.4);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
     border-radius: var(--radius-md);
     padding: 16px;
     cursor: pointer;
-    transition: background 0.3s ease;
-    border: none;
+    transition: all var(--transition);
+    border: 1px solid rgba(255, 255, 255, 0.03);
     overflow: visible;
-    box-shadow: none;
-    transform: none;
-    backdrop-filter: none;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
 }
 
 .card:hover {
-    background: var(--sp-bg-highlight);
-    transform: none;
-    box-shadow: none;
-    border-color: transparent;
+    background: rgba(40, 40, 40, 0.6);
+    transform: translateY(-6px);
+    box-shadow: 0 12px 30px rgba(0,0,0,0.5), 0 0 20px rgba(29, 185, 84, 0.1);
+    border-color: rgba(29, 185, 84, 0.15);
 }
 
 /* Image wrapper for play overlay */
@@ -965,15 +1005,16 @@ body {
     left: 0;
     width: 100%;
     height: var(--player-height);
-    background: var(--sp-bg-elevated);
-    border-top: 1px solid rgba(255,255,255,0.1);
+    background: rgba(10, 10, 10, 0.85);
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0 16px;
+    padding: 0 24px;
     z-index: 1000;
-    box-shadow: none;
-    backdrop-filter: none;
+    box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
     flex-direction: row;
 }
 
@@ -982,8 +1023,8 @@ body {
 .player-top {
     display: flex;
     align-items: center;
-    gap: 14px;
-    min-width: 180px;
+    gap: 16px;
+    min-width: 220px;
     width: 30%;
     margin-bottom: 0;
 }
@@ -997,17 +1038,18 @@ body {
 }
 
 .player-song-img {
-    width: 56px;
-    height: 56px;
+    width: 64px;
+    height: 64px;
     border-radius: var(--radius-sm);
     object-fit: cover;
-    box-shadow: none;
-    border: none;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+    border: 1px solid rgba(255,255,255,0.05);
     flex-shrink: 0;
+    transition: box-shadow 0.3s;
 }
 
 .player.playing .player-song-img {
-    animation: none;
+    box-shadow: 0 0 20px rgba(29, 185, 84, 0.4);
 }
 
 .player-song-details {
@@ -1170,49 +1212,47 @@ body {
 .progress-container {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 12px;
     width: 100%;
 }
 
 .time {
-    font-size: 0.7rem;
+    font-size: 0.75rem;
     color: var(--sp-text-secondary);
-    min-width: 36px;
+    min-width: 40px;
     text-align: center;
-    font-weight: 400;
+    font-weight: 500;
     font-variant-numeric: tabular-nums;
 }
 
 .progress-bar {
     flex: 1;
     height: 4px;
-    background: rgba(255,255,255,0.15);
-    border-radius: 2px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
     cursor: pointer;
     position: relative;
     overflow: visible;
-    transition: height 0.15s;
+    transition: height 0.2s, background 0.2s;
 }
 
 .progress-bar:hover {
     height: 6px;
+    background: rgba(255, 255, 255, 0.15);
 }
 
 .progress {
     height: 100%;
     background: var(--sp-text);
-    border-radius: 2px;
+    border-radius: 4px;
     width: 0%;
     position: relative;
-    transition: none;
-}
-
-.progress::after {
-    display: none;
+    transition: width 0.1s linear;
 }
 
 .progress-bar:hover .progress {
     background: var(--sp-green);
+    box-shadow: 0 0 10px rgba(29, 185, 84, 0.5);
 }
 
 .progress-bar:hover .progress::after {
@@ -1222,11 +1262,11 @@ body {
     right: -6px;
     top: 50%;
     transform: translateY(-50%);
-    width: 12px;
-    height: 12px;
-    background: var(--sp-text);
+    width: 14px;
+    height: 14px;
+    background: #fff;
     border-radius: 50%;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.6), 0 0 10px rgba(29, 185, 84, 0.8);
 }
 
 /* Player Right - Volume */
